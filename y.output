@@ -1,0 +1,4445 @@
+Terminals unused in grammar
+
+   CONST
+   XOR_ASSIGN
+
+
+Grammar
+
+    0 $accept: program $end
+
+    1 program: decList
+
+    2 decList: decList dec
+    3        | dec
+
+    4 dec: vardec
+    5    | classdec
+    6    | fundec
+
+    7 vardec: typespecifier vardecList ';'
+
+    8 scopedvardec: scopedtypespecifier vardecList ';'
+
+    9 vardecList: vardecList ',' vardecInit
+   10           | vardecInit
+
+   11 vardecInit: vardecId
+   12           | vardecId '=' simpleExpr
+
+   13 scopedtypespecifier: STATIC typespecifier
+   14                    | typespecifier
+
+   15 vardecId: IDENTIFIER
+   16         | IDENTIFIER '[' CONSTANT ']'
+
+   17 typespecifier: INT
+   18              | CHAR
+   19              | FLOAT
+   20              | BOOL
+
+   21 fundec: typespecifier IDENTIFIER '(' params ')' stmt
+   22       | IDENTIFIER '(' params ')' stmt
+   23       | VOID IDENTIFIER '(' params ')' stmt
+
+   24 params: paramList
+   25       | %empty
+
+   26 paramList: paramList ',' paramtypeList
+   27          | paramtypeList
+
+   28 paramtypeList: typespecifier paramId
+
+   29 paramId: IDENTIFIER
+   30        | IDENTIFIER '[' ']'
+
+   31 classdec: mutable '=' class ';'
+
+   32 class: Pclass
+   33      | Jobclass
+   34      | Memclass
+   35      | Linkclass
+   36      | Clusterclass
+
+   37 Pclass: PROCESSOR '(' ManP OptP ')'
+
+   38 ManP: ISA '=' stringhandler ',' CLOCKSPEED '=' sumExpr ',' L1MEMORY '=' sumExpr
+
+   39 OptP: ',' L2MEMORY '=' sumExpr SubOp
+   40     | SubOp
+
+   41 SubOp: ',' NAME '=' stringhandler
+   42      | %empty
+
+   43 stringhandler: mutable
+   44              | immutable
+
+   45 Jobclass: JOB '(' JOB_ID '=' sumExpr ',' FLOPSREQUIRED '=' sumExpr ',' DEADLINE '=' sumExpr ',' MEMREQUIRED '=' sumExpr ',' AFFINITY '=' affinityhandler ')'
+
+   46 Memclass: MEMORY '(' MEMORYTYPE '=' stringhandler ',' MEMSIZE '=' sumExpr nameparameter ')'
+
+   47 Linkclass: LINK '(' STARTPOINT '=' stringhandler ',' ENDPOINT '=' stringhandler ',' BANDWIDTH '=' sumExpr ',' CHANNELCAPACITY '=' sumExpr nameparameter ')'
+
+   48 Clusterclass: CLUSTER '(' PROCESSORS '=' Array ',' TOPOLOGY '=' stringhandler ',' LINKBANDWIDTH '=' sumExpr ',' LINKCAPACITY '=' sumExpr nameparameter ')'
+
+   49 affinityhandler: mutable
+   50                | '[' Expr ',' Expr ',' Expr ',' Expr ']'
+
+   51 nameparameter: ',' NAME '=' stringhandler
+   52              | %empty
+
+   53 stmt: Exprstmt
+   54     | compoundstmt
+   55     | selectionstmt
+   56     | iterationstmt
+   57     | returnstmt
+   58     | breakstmt
+   59     | classdec
+
+   60 compoundstmt: '{' localdecs stmtList '}'
+
+   61 localdecs: localdecs scopedvardec
+   62          | %empty
+
+   63 stmtList: stmtList stmt
+   64         | %empty
+
+   65 Exprstmt: Expr ';'
+   66         | DISCARD_JOB '(' Array ')' ';'
+   67         | RUN '(' Array ')' ';'
+   68         | ';'
+
+   69 selectionstmt: IF '(' simpleExpr ')' stmt
+   70              | IF '(' simpleExpr ')' stmt ELSE stmt
+
+   71 iterationstmt: WHILE '(' simpleExpr ')' stmt
+   72              | FOR '(' Exprstmt Exprstmt ')' stmt
+   73              | FOR '(' Exprstmt Exprstmt Expr ')' stmt
+   74              | DO stmt WHILE '(' simpleExpr ')' ';'
+
+   75 returnstmt: RETURN ';'
+   76           | RETURN Expr ';'
+
+   77 breakstmt: BREAK ';'
+
+   78 Expr: mutable '=' Expr
+   79     | mutable ADD_ASSIGN Expr
+   80     | mutable SUB_ASSIGN Expr
+   81     | mutable MUL_ASSIGN Expr
+   82     | mutable DIV_ASSIGN Expr
+   83     | mutable INC_OP
+   84     | mutable DEC_OP
+   85     | simpleExpr
+   86     | mutable AND_ASSIGN Expr
+   87     | mutable OR_ASSIGN Expr
+   88     | mutable MOD_ASSIGN Expr
+
+   89 simpleExpr: simpleExpr OR_OP andExpr
+   90           | andExpr
+
+   91 andExpr: andExpr AND_OP unaryRelExpr
+   92        | unaryRelExpr
+
+   93 unaryRelExpr: '!' unaryRelExpr
+   94             | relExpr
+
+   95 relExpr: sumExpr relop sumExpr
+   96        | sumExpr
+
+   97 relop: LE_OP
+   98      | '<'
+   99      | '>'
+  100      | GE_OP
+  101      | EQ_OP
+  102      | NE_OP
+
+  103 sumExpr: sumExpr sumop term
+  104        | term
+
+  105 sumop: '+'
+  106      | '-'
+
+  107 term: term mulop factor
+  108     | factor
+
+  109 mulop: '*'
+  110      | '/'
+  111      | '%'
+
+  112 factor: immutable
+  113       | mutable
+
+  114 mutable: IDENTIFIER
+  115        | mutable '[' Expr ']'
+  116        | mutable '.' Memfun
+
+  117 Memfun: ISRUNNING '(' ')'
+  118       | SUBMITJOBS '(' Array ')'
+  119       | GETCLOCKSPEED '(' ')'
+  120       | GETAVAILABLEMEMORY '(' ')'
+  121       | GETMEMORY '(' ')'
+
+  122 Array: mutable
+  123      | '[' IDsList ']'
+
+  124 IDsList: IDsList ',' mutable
+  125        | mutable
+
+  126 immutable: '(' Expr ')'
+  127          | call
+  128          | constant
+
+  129 call: IDENTIFIER '(' args ')'
+
+  130 args: argList
+  131     | %empty
+
+  132 argList: argList ',' Expr
+  133        | Expr
+
+  134 constant: CONSTANT
+  135         | STRING_LITERAL
+  136         | FCONST
+  137         | TRUE
+  138         | FALSE
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'!' (33) 93
+'%' (37) 111
+'(' (40) 21 22 23 37 45 46 47 48 66 67 69 70 71 72 73 74 117 118 119
+    120 121 126 129
+')' (41) 21 22 23 37 45 46 47 48 66 67 69 70 71 72 73 74 117 118 119
+    120 121 126 129
+'*' (42) 109
+'+' (43) 105
+',' (44) 9 26 38 39 41 45 46 47 48 50 51 124 132
+'-' (45) 106
+'.' (46) 116
+'/' (47) 110
+';' (59) 7 8 31 65 66 67 68 74 75 76 77
+'<' (60) 98
+'=' (61) 12 31 38 39 41 45 46 47 48 51 78
+'>' (62) 99
+'[' (91) 16 30 50 115 123
+']' (93) 16 30 50 115 123
+'{' (123) 60
+'}' (125) 60
+error (256)
+BREAK (258) 77
+RETURN (259) 75 76
+CHAR (260) 18
+INT (261) 17
+FLOAT (262) 19
+BOOL (263) 20
+TRUE (264) 137
+FALSE (265) 138
+CONST (266)
+CONSTANT (267) 16 134
+STRING_LITERAL (268) 135
+FCONST (269) 136
+STATIC (270) 13
+IF (271) 69 70
+ELSE (272) 70
+FOR (273) 72 73
+DO (274) 74
+WHILE (275) 71 74
+VOID (276) 23
+DEC_OP (277) 84
+INC_OP (278) 83
+IDENTIFIER (279) 15 16 21 22 23 29 30 114 129
+PROCESSORS (280) 48
+PROCESSOR (281) 37
+ISA (282) 38
+CLOCKSPEED (283) 38
+L1MEMORY (284) 38
+L2MEMORY (285) 39
+NAME (286) 41 51
+ISRUNNING (287) 117
+SUBMITJOBS (288) 118
+GETCLOCKSPEED (289) 119
+RUN (290) 67
+DISCARD_JOB (291) 66
+LINK (292) 47
+LINKBANDWIDTH (293) 48
+LINKCAPACITY (294) 48
+STARTPOINT (295) 47
+ENDPOINT (296) 47
+BANDWIDTH (297) 47
+GETAVAILABLEMEMORY (298) 120
+MEMORY (299) 46
+GETMEMORY (300) 121
+JOB (301) 45
+JOB_ID (302) 45
+FLOPSREQUIRED (303) 45
+DEADLINE (304) 45
+MEMREQUIRED (305) 45
+AFFINITY (306) 45
+CLUSTER (307) 48
+TOPOLOGY (308) 48
+MEMORYTYPE (309) 46
+MEMSIZE (310) 46
+CHANNELCAPACITY (311) 47
+"then" (312)
+ADD_ASSIGN (313) 79
+SUB_ASSIGN (314) 80
+MUL_ASSIGN (315) 81
+DIV_ASSIGN (316) 82
+MOD_ASSIGN (317) 88
+OR_ASSIGN (318) 87
+AND_ASSIGN (319) 86
+XOR_ASSIGN (320)
+OR_OP (321) 89
+AND_OP (322) 91
+LE_OP (323) 97
+GE_OP (324) 100
+EQ_OP (325) 101
+NE_OP (326) 102
+
+
+Nonterminals, with rules where they appear
+
+$accept (90)
+    on left: 0
+program (91)
+    on left: 1, on right: 0
+decList (92)
+    on left: 2 3, on right: 1 2
+dec (93)
+    on left: 4 5 6, on right: 2 3
+vardec (94)
+    on left: 7, on right: 4
+scopedvardec (95)
+    on left: 8, on right: 61
+vardecList (96)
+    on left: 9 10, on right: 7 8 9
+vardecInit (97)
+    on left: 11 12, on right: 9 10
+scopedtypespecifier (98)
+    on left: 13 14, on right: 8
+vardecId (99)
+    on left: 15 16, on right: 11 12
+typespecifier (100)
+    on left: 17 18 19 20, on right: 7 13 14 21 28
+fundec (101)
+    on left: 21 22 23, on right: 6
+params (102)
+    on left: 24 25, on right: 21 22 23
+paramList (103)
+    on left: 26 27, on right: 24 26
+paramtypeList (104)
+    on left: 28, on right: 26 27
+paramId (105)
+    on left: 29 30, on right: 28
+classdec (106)
+    on left: 31, on right: 5 59
+class (107)
+    on left: 32 33 34 35 36, on right: 31
+Pclass (108)
+    on left: 37, on right: 32
+ManP (109)
+    on left: 38, on right: 37
+OptP (110)
+    on left: 39 40, on right: 37
+SubOp (111)
+    on left: 41 42, on right: 39 40
+stringhandler (112)
+    on left: 43 44, on right: 38 41 46 47 48 51
+Jobclass (113)
+    on left: 45, on right: 33
+Memclass (114)
+    on left: 46, on right: 34
+Linkclass (115)
+    on left: 47, on right: 35
+Clusterclass (116)
+    on left: 48, on right: 36
+affinityhandler (117)
+    on left: 49 50, on right: 45
+nameparameter (118)
+    on left: 51 52, on right: 46 47 48
+stmt (119)
+    on left: 53 54 55 56 57 58 59, on right: 21 22 23 63 69 70 71 72
+    73 74
+compoundstmt (120)
+    on left: 60, on right: 54
+localdecs (121)
+    on left: 61 62, on right: 60 61
+stmtList (122)
+    on left: 63 64, on right: 60 63
+Exprstmt (123)
+    on left: 65 66 67 68, on right: 53 72 73
+selectionstmt (124)
+    on left: 69 70, on right: 55
+iterationstmt (125)
+    on left: 71 72 73 74, on right: 56
+returnstmt (126)
+    on left: 75 76, on right: 57
+breakstmt (127)
+    on left: 77, on right: 58
+Expr (128)
+    on left: 78 79 80 81 82 83 84 85 86 87 88, on right: 50 65 73 76
+    78 79 80 81 82 86 87 88 115 126 132 133
+simpleExpr (129)
+    on left: 89 90, on right: 12 69 70 71 74 85 89
+andExpr (130)
+    on left: 91 92, on right: 89 90 91
+unaryRelExpr (131)
+    on left: 93 94, on right: 91 92 93
+relExpr (132)
+    on left: 95 96, on right: 94
+relop (133)
+    on left: 97 98 99 100 101 102, on right: 95
+sumExpr (134)
+    on left: 103 104, on right: 38 39 45 46 47 48 95 96 103
+sumop (135)
+    on left: 105 106, on right: 103
+term (136)
+    on left: 107 108, on right: 103 104 107
+mulop (137)
+    on left: 109 110 111, on right: 107
+factor (138)
+    on left: 112 113, on right: 107 108
+mutable (139)
+    on left: 114 115 116, on right: 31 43 49 78 79 80 81 82 83 84 86
+    87 88 113 115 116 122 124 125
+Memfun (140)
+    on left: 117 118 119 120 121, on right: 116
+Array (141)
+    on left: 122 123, on right: 48 66 67 118
+IDsList (142)
+    on left: 124 125, on right: 123 124
+immutable (143)
+    on left: 126 127 128, on right: 44 112
+call (144)
+    on left: 129, on right: 127
+args (145)
+    on left: 130 131, on right: 129
+argList (146)
+    on left: 132 133, on right: 130 132
+constant (147)
+    on left: 134 135 136 137 138, on right: 128
+
+
+State 0
+
+    0 $accept: . program $end
+
+    CHAR        shift, and go to state 1
+    INT         shift, and go to state 2
+    FLOAT       shift, and go to state 3
+    BOOL        shift, and go to state 4
+    VOID        shift, and go to state 5
+    IDENTIFIER  shift, and go to state 6
+
+    program        go to state 7
+    decList        go to state 8
+    dec            go to state 9
+    vardec         go to state 10
+    typespecifier  go to state 11
+    fundec         go to state 12
+    classdec       go to state 13
+    mutable        go to state 14
+
+
+State 1
+
+   18 typespecifier: CHAR .
+
+    $default  reduce using rule 18 (typespecifier)
+
+
+State 2
+
+   17 typespecifier: INT .
+
+    $default  reduce using rule 17 (typespecifier)
+
+
+State 3
+
+   19 typespecifier: FLOAT .
+
+    $default  reduce using rule 19 (typespecifier)
+
+
+State 4
+
+   20 typespecifier: BOOL .
+
+    $default  reduce using rule 20 (typespecifier)
+
+
+State 5
+
+   23 fundec: VOID . IDENTIFIER '(' params ')' stmt
+
+    IDENTIFIER  shift, and go to state 15
+
+
+State 6
+
+   22 fundec: IDENTIFIER . '(' params ')' stmt
+  114 mutable: IDENTIFIER .
+
+    '('  shift, and go to state 16
+
+    $default  reduce using rule 114 (mutable)
+
+
+State 7
+
+    0 $accept: program . $end
+
+    $end  shift, and go to state 17
+
+
+State 8
+
+    1 program: decList .
+    2 decList: decList . dec
+
+    CHAR        shift, and go to state 1
+    INT         shift, and go to state 2
+    FLOAT       shift, and go to state 3
+    BOOL        shift, and go to state 4
+    VOID        shift, and go to state 5
+    IDENTIFIER  shift, and go to state 6
+
+    $default  reduce using rule 1 (program)
+
+    dec            go to state 18
+    vardec         go to state 10
+    typespecifier  go to state 11
+    fundec         go to state 12
+    classdec       go to state 13
+    mutable        go to state 14
+
+
+State 9
+
+    3 decList: dec .
+
+    $default  reduce using rule 3 (decList)
+
+
+State 10
+
+    4 dec: vardec .
+
+    $default  reduce using rule 4 (dec)
+
+
+State 11
+
+    7 vardec: typespecifier . vardecList ';'
+   21 fundec: typespecifier . IDENTIFIER '(' params ')' stmt
+
+    IDENTIFIER  shift, and go to state 19
+
+    vardecList  go to state 20
+    vardecInit  go to state 21
+    vardecId    go to state 22
+
+
+State 12
+
+    6 dec: fundec .
+
+    $default  reduce using rule 6 (dec)
+
+
+State 13
+
+    5 dec: classdec .
+
+    $default  reduce using rule 5 (dec)
+
+
+State 14
+
+   31 classdec: mutable . '=' class ';'
+  115 mutable: mutable . '[' Expr ']'
+  116        | mutable . '.' Memfun
+
+    '='  shift, and go to state 23
+    '['  shift, and go to state 24
+    '.'  shift, and go to state 25
+
+
+State 15
+
+   23 fundec: VOID IDENTIFIER . '(' params ')' stmt
+
+    '('  shift, and go to state 26
+
+
+State 16
+
+   22 fundec: IDENTIFIER '(' . params ')' stmt
+
+    CHAR   shift, and go to state 1
+    INT    shift, and go to state 2
+    FLOAT  shift, and go to state 3
+    BOOL   shift, and go to state 4
+
+    $default  reduce using rule 25 (params)
+
+    typespecifier  go to state 27
+    params         go to state 28
+    paramList      go to state 29
+    paramtypeList  go to state 30
+
+
+State 17
+
+    0 $accept: program $end .
+
+    $default  accept
+
+
+State 18
+
+    2 decList: decList dec .
+
+    $default  reduce using rule 2 (decList)
+
+
+State 19
+
+   15 vardecId: IDENTIFIER .
+   16         | IDENTIFIER . '[' CONSTANT ']'
+   21 fundec: typespecifier IDENTIFIER . '(' params ')' stmt
+
+    '['  shift, and go to state 31
+    '('  shift, and go to state 32
+
+    $default  reduce using rule 15 (vardecId)
+
+
+State 20
+
+    7 vardec: typespecifier vardecList . ';'
+    9 vardecList: vardecList . ',' vardecInit
+
+    ';'  shift, and go to state 33
+    ','  shift, and go to state 34
+
+
+State 21
+
+   10 vardecList: vardecInit .
+
+    $default  reduce using rule 10 (vardecList)
+
+
+State 22
+
+   11 vardecInit: vardecId .
+   12           | vardecId . '=' simpleExpr
+
+    '='  shift, and go to state 35
+
+    $default  reduce using rule 11 (vardecInit)
+
+
+State 23
+
+   31 classdec: mutable '=' . class ';'
+
+    PROCESSOR  shift, and go to state 36
+    LINK       shift, and go to state 37
+    MEMORY     shift, and go to state 38
+    JOB        shift, and go to state 39
+    CLUSTER    shift, and go to state 40
+
+    class         go to state 41
+    Pclass        go to state 42
+    Jobclass      go to state 43
+    Memclass      go to state 44
+    Linkclass     go to state 45
+    Clusterclass  go to state 46
+
+
+State 24
+
+  115 mutable: mutable '[' . Expr ']'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    Expr          go to state 55
+    simpleExpr    go to state 56
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 63
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 25
+
+  116 mutable: mutable '.' . Memfun
+
+    ISRUNNING           shift, and go to state 67
+    SUBMITJOBS          shift, and go to state 68
+    GETCLOCKSPEED       shift, and go to state 69
+    GETAVAILABLEMEMORY  shift, and go to state 70
+    GETMEMORY           shift, and go to state 71
+
+    Memfun  go to state 72
+
+
+State 26
+
+   23 fundec: VOID IDENTIFIER '(' . params ')' stmt
+
+    CHAR   shift, and go to state 1
+    INT    shift, and go to state 2
+    FLOAT  shift, and go to state 3
+    BOOL   shift, and go to state 4
+
+    $default  reduce using rule 25 (params)
+
+    typespecifier  go to state 27
+    params         go to state 73
+    paramList      go to state 29
+    paramtypeList  go to state 30
+
+
+State 27
+
+   28 paramtypeList: typespecifier . paramId
+
+    IDENTIFIER  shift, and go to state 74
+
+    paramId  go to state 75
+
+
+State 28
+
+   22 fundec: IDENTIFIER '(' params . ')' stmt
+
+    ')'  shift, and go to state 76
+
+
+State 29
+
+   24 params: paramList .
+   26 paramList: paramList . ',' paramtypeList
+
+    ','  shift, and go to state 77
+
+    $default  reduce using rule 24 (params)
+
+
+State 30
+
+   27 paramList: paramtypeList .
+
+    $default  reduce using rule 27 (paramList)
+
+
+State 31
+
+   16 vardecId: IDENTIFIER '[' . CONSTANT ']'
+
+    CONSTANT  shift, and go to state 78
+
+
+State 32
+
+   21 fundec: typespecifier IDENTIFIER '(' . params ')' stmt
+
+    CHAR   shift, and go to state 1
+    INT    shift, and go to state 2
+    FLOAT  shift, and go to state 3
+    BOOL   shift, and go to state 4
+
+    $default  reduce using rule 25 (params)
+
+    typespecifier  go to state 27
+    params         go to state 79
+    paramList      go to state 29
+    paramtypeList  go to state 30
+
+
+State 33
+
+    7 vardec: typespecifier vardecList ';' .
+
+    $default  reduce using rule 7 (vardec)
+
+
+State 34
+
+    9 vardecList: vardecList ',' . vardecInit
+
+    IDENTIFIER  shift, and go to state 80
+
+    vardecInit  go to state 81
+    vardecId    go to state 22
+
+
+State 35
+
+   12 vardecInit: vardecId '=' . simpleExpr
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    simpleExpr    go to state 82
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 83
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 36
+
+   37 Pclass: PROCESSOR . '(' ManP OptP ')'
+
+    '('  shift, and go to state 84
+
+
+State 37
+
+   47 Linkclass: LINK . '(' STARTPOINT '=' stringhandler ',' ENDPOINT '=' stringhandler ',' BANDWIDTH '=' sumExpr ',' CHANNELCAPACITY '=' sumExpr nameparameter ')'
+
+    '('  shift, and go to state 85
+
+
+State 38
+
+   46 Memclass: MEMORY . '(' MEMORYTYPE '=' stringhandler ',' MEMSIZE '=' sumExpr nameparameter ')'
+
+    '('  shift, and go to state 86
+
+
+State 39
+
+   45 Jobclass: JOB . '(' JOB_ID '=' sumExpr ',' FLOPSREQUIRED '=' sumExpr ',' DEADLINE '=' sumExpr ',' MEMREQUIRED '=' sumExpr ',' AFFINITY '=' affinityhandler ')'
+
+    '('  shift, and go to state 87
+
+
+State 40
+
+   48 Clusterclass: CLUSTER . '(' PROCESSORS '=' Array ',' TOPOLOGY '=' stringhandler ',' LINKBANDWIDTH '=' sumExpr ',' LINKCAPACITY '=' sumExpr nameparameter ')'
+
+    '('  shift, and go to state 88
+
+
+State 41
+
+   31 classdec: mutable '=' class . ';'
+
+    ';'  shift, and go to state 89
+
+
+State 42
+
+   32 class: Pclass .
+
+    $default  reduce using rule 32 (class)
+
+
+State 43
+
+   33 class: Jobclass .
+
+    $default  reduce using rule 33 (class)
+
+
+State 44
+
+   34 class: Memclass .
+
+    $default  reduce using rule 34 (class)
+
+
+State 45
+
+   35 class: Linkclass .
+
+    $default  reduce using rule 35 (class)
+
+
+State 46
+
+   36 class: Clusterclass .
+
+    $default  reduce using rule 36 (class)
+
+
+State 47
+
+  137 constant: TRUE .
+
+    $default  reduce using rule 137 (constant)
+
+
+State 48
+
+  138 constant: FALSE .
+
+    $default  reduce using rule 138 (constant)
+
+
+State 49
+
+  134 constant: CONSTANT .
+
+    $default  reduce using rule 134 (constant)
+
+
+State 50
+
+  135 constant: STRING_LITERAL .
+
+    $default  reduce using rule 135 (constant)
+
+
+State 51
+
+  136 constant: FCONST .
+
+    $default  reduce using rule 136 (constant)
+
+
+State 52
+
+  114 mutable: IDENTIFIER .
+  129 call: IDENTIFIER . '(' args ')'
+
+    '('  shift, and go to state 90
+
+    $default  reduce using rule 114 (mutable)
+
+
+State 53
+
+  126 immutable: '(' . Expr ')'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    Expr          go to state 91
+    simpleExpr    go to state 56
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 63
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 54
+
+   93 unaryRelExpr: '!' . unaryRelExpr
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    unaryRelExpr  go to state 92
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 83
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 55
+
+  115 mutable: mutable '[' Expr . ']'
+
+    ']'  shift, and go to state 93
+
+
+State 56
+
+   85 Expr: simpleExpr .
+   89 simpleExpr: simpleExpr . OR_OP andExpr
+
+    OR_OP  shift, and go to state 94
+
+    $default  reduce using rule 85 (Expr)
+
+
+State 57
+
+   90 simpleExpr: andExpr .
+   91 andExpr: andExpr . AND_OP unaryRelExpr
+
+    AND_OP  shift, and go to state 95
+
+    $default  reduce using rule 90 (simpleExpr)
+
+
+State 58
+
+   92 andExpr: unaryRelExpr .
+
+    $default  reduce using rule 92 (andExpr)
+
+
+State 59
+
+   94 unaryRelExpr: relExpr .
+
+    $default  reduce using rule 94 (unaryRelExpr)
+
+
+State 60
+
+   95 relExpr: sumExpr . relop sumExpr
+   96        | sumExpr .
+  103 sumExpr: sumExpr . sumop term
+
+    LE_OP  shift, and go to state 96
+    GE_OP  shift, and go to state 97
+    EQ_OP  shift, and go to state 98
+    NE_OP  shift, and go to state 99
+    '+'    shift, and go to state 100
+    '-'    shift, and go to state 101
+    '<'    shift, and go to state 102
+    '>'    shift, and go to state 103
+
+    $default  reduce using rule 96 (relExpr)
+
+    relop  go to state 104
+    sumop  go to state 105
+
+
+State 61
+
+  104 sumExpr: term .
+  107 term: term . mulop factor
+
+    '*'  shift, and go to state 106
+    '/'  shift, and go to state 107
+    '%'  shift, and go to state 108
+
+    $default  reduce using rule 104 (sumExpr)
+
+    mulop  go to state 109
+
+
+State 62
+
+  108 term: factor .
+
+    $default  reduce using rule 108 (term)
+
+
+State 63
+
+   78 Expr: mutable . '=' Expr
+   79     | mutable . ADD_ASSIGN Expr
+   80     | mutable . SUB_ASSIGN Expr
+   81     | mutable . MUL_ASSIGN Expr
+   82     | mutable . DIV_ASSIGN Expr
+   83     | mutable . INC_OP
+   84     | mutable . DEC_OP
+   86     | mutable . AND_ASSIGN Expr
+   87     | mutable . OR_ASSIGN Expr
+   88     | mutable . MOD_ASSIGN Expr
+  113 factor: mutable .
+  115 mutable: mutable . '[' Expr ']'
+  116        | mutable . '.' Memfun
+
+    DEC_OP      shift, and go to state 110
+    INC_OP      shift, and go to state 111
+    ADD_ASSIGN  shift, and go to state 112
+    SUB_ASSIGN  shift, and go to state 113
+    MUL_ASSIGN  shift, and go to state 114
+    DIV_ASSIGN  shift, and go to state 115
+    MOD_ASSIGN  shift, and go to state 116
+    OR_ASSIGN   shift, and go to state 117
+    AND_ASSIGN  shift, and go to state 118
+    '='         shift, and go to state 119
+    '['         shift, and go to state 24
+    '.'         shift, and go to state 25
+
+    $default  reduce using rule 113 (factor)
+
+
+State 64
+
+  112 factor: immutable .
+
+    $default  reduce using rule 112 (factor)
+
+
+State 65
+
+  127 immutable: call .
+
+    $default  reduce using rule 127 (immutable)
+
+
+State 66
+
+  128 immutable: constant .
+
+    $default  reduce using rule 128 (immutable)
+
+
+State 67
+
+  117 Memfun: ISRUNNING . '(' ')'
+
+    '('  shift, and go to state 120
+
+
+State 68
+
+  118 Memfun: SUBMITJOBS . '(' Array ')'
+
+    '('  shift, and go to state 121
+
+
+State 69
+
+  119 Memfun: GETCLOCKSPEED . '(' ')'
+
+    '('  shift, and go to state 122
+
+
+State 70
+
+  120 Memfun: GETAVAILABLEMEMORY . '(' ')'
+
+    '('  shift, and go to state 123
+
+
+State 71
+
+  121 Memfun: GETMEMORY . '(' ')'
+
+    '('  shift, and go to state 124
+
+
+State 72
+
+  116 mutable: mutable '.' Memfun .
+
+    $default  reduce using rule 116 (mutable)
+
+
+State 73
+
+   23 fundec: VOID IDENTIFIER '(' params . ')' stmt
+
+    ')'  shift, and go to state 125
+
+
+State 74
+
+   29 paramId: IDENTIFIER .
+   30        | IDENTIFIER . '[' ']'
+
+    '['  shift, and go to state 126
+
+    $default  reduce using rule 29 (paramId)
+
+
+State 75
+
+   28 paramtypeList: typespecifier paramId .
+
+    $default  reduce using rule 28 (paramtypeList)
+
+
+State 76
+
+   22 fundec: IDENTIFIER '(' params ')' . stmt
+
+    BREAK           shift, and go to state 127
+    RETURN          shift, and go to state 128
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IF              shift, and go to state 129
+    FOR             shift, and go to state 130
+    DO              shift, and go to state 131
+    WHILE           shift, and go to state 132
+    IDENTIFIER      shift, and go to state 52
+    RUN             shift, and go to state 133
+    DISCARD_JOB     shift, and go to state 134
+    ';'             shift, and go to state 135
+    '('             shift, and go to state 53
+    '{'             shift, and go to state 136
+    '!'             shift, and go to state 54
+
+    classdec       go to state 137
+    stmt           go to state 138
+    compoundstmt   go to state 139
+    Exprstmt       go to state 140
+    selectionstmt  go to state 141
+    iterationstmt  go to state 142
+    returnstmt     go to state 143
+    breakstmt      go to state 144
+    Expr           go to state 145
+    simpleExpr     go to state 56
+    andExpr        go to state 57
+    unaryRelExpr   go to state 58
+    relExpr        go to state 59
+    sumExpr        go to state 60
+    term           go to state 61
+    factor         go to state 62
+    mutable        go to state 146
+    immutable      go to state 64
+    call           go to state 65
+    constant       go to state 66
+
+
+State 77
+
+   26 paramList: paramList ',' . paramtypeList
+
+    CHAR   shift, and go to state 1
+    INT    shift, and go to state 2
+    FLOAT  shift, and go to state 3
+    BOOL   shift, and go to state 4
+
+    typespecifier  go to state 27
+    paramtypeList  go to state 147
+
+
+State 78
+
+   16 vardecId: IDENTIFIER '[' CONSTANT . ']'
+
+    ']'  shift, and go to state 148
+
+
+State 79
+
+   21 fundec: typespecifier IDENTIFIER '(' params . ')' stmt
+
+    ')'  shift, and go to state 149
+
+
+State 80
+
+   15 vardecId: IDENTIFIER .
+   16         | IDENTIFIER . '[' CONSTANT ']'
+
+    '['  shift, and go to state 31
+
+    $default  reduce using rule 15 (vardecId)
+
+
+State 81
+
+    9 vardecList: vardecList ',' vardecInit .
+
+    $default  reduce using rule 9 (vardecList)
+
+
+State 82
+
+   12 vardecInit: vardecId '=' simpleExpr .
+   89 simpleExpr: simpleExpr . OR_OP andExpr
+
+    OR_OP  shift, and go to state 94
+
+    $default  reduce using rule 12 (vardecInit)
+
+
+State 83
+
+  113 factor: mutable .
+  115 mutable: mutable . '[' Expr ']'
+  116        | mutable . '.' Memfun
+
+    '['  shift, and go to state 24
+    '.'  shift, and go to state 25
+
+    $default  reduce using rule 113 (factor)
+
+
+State 84
+
+   37 Pclass: PROCESSOR '(' . ManP OptP ')'
+
+    ISA  shift, and go to state 150
+
+    ManP  go to state 151
+
+
+State 85
+
+   47 Linkclass: LINK '(' . STARTPOINT '=' stringhandler ',' ENDPOINT '=' stringhandler ',' BANDWIDTH '=' sumExpr ',' CHANNELCAPACITY '=' sumExpr nameparameter ')'
+
+    STARTPOINT  shift, and go to state 152
+
+
+State 86
+
+   46 Memclass: MEMORY '(' . MEMORYTYPE '=' stringhandler ',' MEMSIZE '=' sumExpr nameparameter ')'
+
+    MEMORYTYPE  shift, and go to state 153
+
+
+State 87
+
+   45 Jobclass: JOB '(' . JOB_ID '=' sumExpr ',' FLOPSREQUIRED '=' sumExpr ',' DEADLINE '=' sumExpr ',' MEMREQUIRED '=' sumExpr ',' AFFINITY '=' affinityhandler ')'
+
+    JOB_ID  shift, and go to state 154
+
+
+State 88
+
+   48 Clusterclass: CLUSTER '(' . PROCESSORS '=' Array ',' TOPOLOGY '=' stringhandler ',' LINKBANDWIDTH '=' sumExpr ',' LINKCAPACITY '=' sumExpr nameparameter ')'
+
+    PROCESSORS  shift, and go to state 155
+
+
+State 89
+
+   31 classdec: mutable '=' class ';' .
+
+    $default  reduce using rule 31 (classdec)
+
+
+State 90
+
+  129 call: IDENTIFIER '(' . args ')'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    $default  reduce using rule 131 (args)
+
+    Expr          go to state 156
+    simpleExpr    go to state 56
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 63
+    immutable     go to state 64
+    call          go to state 65
+    args          go to state 157
+    argList       go to state 158
+    constant      go to state 66
+
+
+State 91
+
+  126 immutable: '(' Expr . ')'
+
+    ')'  shift, and go to state 159
+
+
+State 92
+
+   93 unaryRelExpr: '!' unaryRelExpr .
+
+    $default  reduce using rule 93 (unaryRelExpr)
+
+
+State 93
+
+  115 mutable: mutable '[' Expr ']' .
+
+    $default  reduce using rule 115 (mutable)
+
+
+State 94
+
+   89 simpleExpr: simpleExpr OR_OP . andExpr
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    andExpr       go to state 160
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 83
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 95
+
+   91 andExpr: andExpr AND_OP . unaryRelExpr
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    unaryRelExpr  go to state 161
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 83
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 96
+
+   97 relop: LE_OP .
+
+    $default  reduce using rule 97 (relop)
+
+
+State 97
+
+  100 relop: GE_OP .
+
+    $default  reduce using rule 100 (relop)
+
+
+State 98
+
+  101 relop: EQ_OP .
+
+    $default  reduce using rule 101 (relop)
+
+
+State 99
+
+  102 relop: NE_OP .
+
+    $default  reduce using rule 102 (relop)
+
+
+State 100
+
+  105 sumop: '+' .
+
+    $default  reduce using rule 105 (sumop)
+
+
+State 101
+
+  106 sumop: '-' .
+
+    $default  reduce using rule 106 (sumop)
+
+
+State 102
+
+   98 relop: '<' .
+
+    $default  reduce using rule 98 (relop)
+
+
+State 103
+
+   99 relop: '>' .
+
+    $default  reduce using rule 99 (relop)
+
+
+State 104
+
+   95 relExpr: sumExpr relop . sumExpr
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    sumExpr    go to state 162
+    term       go to state 61
+    factor     go to state 62
+    mutable    go to state 83
+    immutable  go to state 64
+    call       go to state 65
+    constant   go to state 66
+
+
+State 105
+
+  103 sumExpr: sumExpr sumop . term
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    term       go to state 163
+    factor     go to state 62
+    mutable    go to state 83
+    immutable  go to state 64
+    call       go to state 65
+    constant   go to state 66
+
+
+State 106
+
+  109 mulop: '*' .
+
+    $default  reduce using rule 109 (mulop)
+
+
+State 107
+
+  110 mulop: '/' .
+
+    $default  reduce using rule 110 (mulop)
+
+
+State 108
+
+  111 mulop: '%' .
+
+    $default  reduce using rule 111 (mulop)
+
+
+State 109
+
+  107 term: term mulop . factor
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    factor     go to state 164
+    mutable    go to state 83
+    immutable  go to state 64
+    call       go to state 65
+    constant   go to state 66
+
+
+State 110
+
+   84 Expr: mutable DEC_OP .
+
+    $default  reduce using rule 84 (Expr)
+
+
+State 111
+
+   83 Expr: mutable INC_OP .
+
+    $default  reduce using rule 83 (Expr)
+
+
+State 112
+
+   79 Expr: mutable ADD_ASSIGN . Expr
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    Expr          go to state 165
+    simpleExpr    go to state 56
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 63
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 113
+
+   80 Expr: mutable SUB_ASSIGN . Expr
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    Expr          go to state 166
+    simpleExpr    go to state 56
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 63
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 114
+
+   81 Expr: mutable MUL_ASSIGN . Expr
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    Expr          go to state 167
+    simpleExpr    go to state 56
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 63
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 115
+
+   82 Expr: mutable DIV_ASSIGN . Expr
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    Expr          go to state 168
+    simpleExpr    go to state 56
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 63
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 116
+
+   88 Expr: mutable MOD_ASSIGN . Expr
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    Expr          go to state 169
+    simpleExpr    go to state 56
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 63
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 117
+
+   87 Expr: mutable OR_ASSIGN . Expr
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    Expr          go to state 170
+    simpleExpr    go to state 56
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 63
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 118
+
+   86 Expr: mutable AND_ASSIGN . Expr
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    Expr          go to state 171
+    simpleExpr    go to state 56
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 63
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 119
+
+   78 Expr: mutable '=' . Expr
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    Expr          go to state 172
+    simpleExpr    go to state 56
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 63
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 120
+
+  117 Memfun: ISRUNNING '(' . ')'
+
+    ')'  shift, and go to state 173
+
+
+State 121
+
+  118 Memfun: SUBMITJOBS '(' . Array ')'
+
+    IDENTIFIER  shift, and go to state 174
+    '['         shift, and go to state 175
+
+    mutable  go to state 176
+    Array    go to state 177
+
+
+State 122
+
+  119 Memfun: GETCLOCKSPEED '(' . ')'
+
+    ')'  shift, and go to state 178
+
+
+State 123
+
+  120 Memfun: GETAVAILABLEMEMORY '(' . ')'
+
+    ')'  shift, and go to state 179
+
+
+State 124
+
+  121 Memfun: GETMEMORY '(' . ')'
+
+    ')'  shift, and go to state 180
+
+
+State 125
+
+   23 fundec: VOID IDENTIFIER '(' params ')' . stmt
+
+    BREAK           shift, and go to state 127
+    RETURN          shift, and go to state 128
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IF              shift, and go to state 129
+    FOR             shift, and go to state 130
+    DO              shift, and go to state 131
+    WHILE           shift, and go to state 132
+    IDENTIFIER      shift, and go to state 52
+    RUN             shift, and go to state 133
+    DISCARD_JOB     shift, and go to state 134
+    ';'             shift, and go to state 135
+    '('             shift, and go to state 53
+    '{'             shift, and go to state 136
+    '!'             shift, and go to state 54
+
+    classdec       go to state 137
+    stmt           go to state 181
+    compoundstmt   go to state 139
+    Exprstmt       go to state 140
+    selectionstmt  go to state 141
+    iterationstmt  go to state 142
+    returnstmt     go to state 143
+    breakstmt      go to state 144
+    Expr           go to state 145
+    simpleExpr     go to state 56
+    andExpr        go to state 57
+    unaryRelExpr   go to state 58
+    relExpr        go to state 59
+    sumExpr        go to state 60
+    term           go to state 61
+    factor         go to state 62
+    mutable        go to state 146
+    immutable      go to state 64
+    call           go to state 65
+    constant       go to state 66
+
+
+State 126
+
+   30 paramId: IDENTIFIER '[' . ']'
+
+    ']'  shift, and go to state 182
+
+
+State 127
+
+   77 breakstmt: BREAK . ';'
+
+    ';'  shift, and go to state 183
+
+
+State 128
+
+   75 returnstmt: RETURN . ';'
+   76           | RETURN . Expr ';'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    ';'             shift, and go to state 184
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    Expr          go to state 185
+    simpleExpr    go to state 56
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 63
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 129
+
+   69 selectionstmt: IF . '(' simpleExpr ')' stmt
+   70              | IF . '(' simpleExpr ')' stmt ELSE stmt
+
+    '('  shift, and go to state 186
+
+
+State 130
+
+   72 iterationstmt: FOR . '(' Exprstmt Exprstmt ')' stmt
+   73              | FOR . '(' Exprstmt Exprstmt Expr ')' stmt
+
+    '('  shift, and go to state 187
+
+
+State 131
+
+   74 iterationstmt: DO . stmt WHILE '(' simpleExpr ')' ';'
+
+    BREAK           shift, and go to state 127
+    RETURN          shift, and go to state 128
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IF              shift, and go to state 129
+    FOR             shift, and go to state 130
+    DO              shift, and go to state 131
+    WHILE           shift, and go to state 132
+    IDENTIFIER      shift, and go to state 52
+    RUN             shift, and go to state 133
+    DISCARD_JOB     shift, and go to state 134
+    ';'             shift, and go to state 135
+    '('             shift, and go to state 53
+    '{'             shift, and go to state 136
+    '!'             shift, and go to state 54
+
+    classdec       go to state 137
+    stmt           go to state 188
+    compoundstmt   go to state 139
+    Exprstmt       go to state 140
+    selectionstmt  go to state 141
+    iterationstmt  go to state 142
+    returnstmt     go to state 143
+    breakstmt      go to state 144
+    Expr           go to state 145
+    simpleExpr     go to state 56
+    andExpr        go to state 57
+    unaryRelExpr   go to state 58
+    relExpr        go to state 59
+    sumExpr        go to state 60
+    term           go to state 61
+    factor         go to state 62
+    mutable        go to state 146
+    immutable      go to state 64
+    call           go to state 65
+    constant       go to state 66
+
+
+State 132
+
+   71 iterationstmt: WHILE . '(' simpleExpr ')' stmt
+
+    '('  shift, and go to state 189
+
+
+State 133
+
+   67 Exprstmt: RUN . '(' Array ')' ';'
+
+    '('  shift, and go to state 190
+
+
+State 134
+
+   66 Exprstmt: DISCARD_JOB . '(' Array ')' ';'
+
+    '('  shift, and go to state 191
+
+
+State 135
+
+   68 Exprstmt: ';' .
+
+    $default  reduce using rule 68 (Exprstmt)
+
+
+State 136
+
+   60 compoundstmt: '{' . localdecs stmtList '}'
+
+    $default  reduce using rule 62 (localdecs)
+
+    localdecs  go to state 192
+
+
+State 137
+
+   59 stmt: classdec .
+
+    $default  reduce using rule 59 (stmt)
+
+
+State 138
+
+   22 fundec: IDENTIFIER '(' params ')' stmt .
+
+    $default  reduce using rule 22 (fundec)
+
+
+State 139
+
+   54 stmt: compoundstmt .
+
+    $default  reduce using rule 54 (stmt)
+
+
+State 140
+
+   53 stmt: Exprstmt .
+
+    $default  reduce using rule 53 (stmt)
+
+
+State 141
+
+   55 stmt: selectionstmt .
+
+    $default  reduce using rule 55 (stmt)
+
+
+State 142
+
+   56 stmt: iterationstmt .
+
+    $default  reduce using rule 56 (stmt)
+
+
+State 143
+
+   57 stmt: returnstmt .
+
+    $default  reduce using rule 57 (stmt)
+
+
+State 144
+
+   58 stmt: breakstmt .
+
+    $default  reduce using rule 58 (stmt)
+
+
+State 145
+
+   65 Exprstmt: Expr . ';'
+
+    ';'  shift, and go to state 193
+
+
+State 146
+
+   31 classdec: mutable . '=' class ';'
+   78 Expr: mutable . '=' Expr
+   79     | mutable . ADD_ASSIGN Expr
+   80     | mutable . SUB_ASSIGN Expr
+   81     | mutable . MUL_ASSIGN Expr
+   82     | mutable . DIV_ASSIGN Expr
+   83     | mutable . INC_OP
+   84     | mutable . DEC_OP
+   86     | mutable . AND_ASSIGN Expr
+   87     | mutable . OR_ASSIGN Expr
+   88     | mutable . MOD_ASSIGN Expr
+  113 factor: mutable .
+  115 mutable: mutable . '[' Expr ']'
+  116        | mutable . '.' Memfun
+
+    DEC_OP      shift, and go to state 110
+    INC_OP      shift, and go to state 111
+    ADD_ASSIGN  shift, and go to state 112
+    SUB_ASSIGN  shift, and go to state 113
+    MUL_ASSIGN  shift, and go to state 114
+    DIV_ASSIGN  shift, and go to state 115
+    MOD_ASSIGN  shift, and go to state 116
+    OR_ASSIGN   shift, and go to state 117
+    AND_ASSIGN  shift, and go to state 118
+    '='         shift, and go to state 194
+    '['         shift, and go to state 24
+    '.'         shift, and go to state 25
+
+    $default  reduce using rule 113 (factor)
+
+
+State 147
+
+   26 paramList: paramList ',' paramtypeList .
+
+    $default  reduce using rule 26 (paramList)
+
+
+State 148
+
+   16 vardecId: IDENTIFIER '[' CONSTANT ']' .
+
+    $default  reduce using rule 16 (vardecId)
+
+
+State 149
+
+   21 fundec: typespecifier IDENTIFIER '(' params ')' . stmt
+
+    BREAK           shift, and go to state 127
+    RETURN          shift, and go to state 128
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IF              shift, and go to state 129
+    FOR             shift, and go to state 130
+    DO              shift, and go to state 131
+    WHILE           shift, and go to state 132
+    IDENTIFIER      shift, and go to state 52
+    RUN             shift, and go to state 133
+    DISCARD_JOB     shift, and go to state 134
+    ';'             shift, and go to state 135
+    '('             shift, and go to state 53
+    '{'             shift, and go to state 136
+    '!'             shift, and go to state 54
+
+    classdec       go to state 137
+    stmt           go to state 195
+    compoundstmt   go to state 139
+    Exprstmt       go to state 140
+    selectionstmt  go to state 141
+    iterationstmt  go to state 142
+    returnstmt     go to state 143
+    breakstmt      go to state 144
+    Expr           go to state 145
+    simpleExpr     go to state 56
+    andExpr        go to state 57
+    unaryRelExpr   go to state 58
+    relExpr        go to state 59
+    sumExpr        go to state 60
+    term           go to state 61
+    factor         go to state 62
+    mutable        go to state 146
+    immutable      go to state 64
+    call           go to state 65
+    constant       go to state 66
+
+
+State 150
+
+   38 ManP: ISA . '=' stringhandler ',' CLOCKSPEED '=' sumExpr ',' L1MEMORY '=' sumExpr
+
+    '='  shift, and go to state 196
+
+
+State 151
+
+   37 Pclass: PROCESSOR '(' ManP . OptP ')'
+
+    ','  shift, and go to state 197
+
+    $default  reduce using rule 42 (SubOp)
+
+    OptP   go to state 198
+    SubOp  go to state 199
+
+
+State 152
+
+   47 Linkclass: LINK '(' STARTPOINT . '=' stringhandler ',' ENDPOINT '=' stringhandler ',' BANDWIDTH '=' sumExpr ',' CHANNELCAPACITY '=' sumExpr nameparameter ')'
+
+    '='  shift, and go to state 200
+
+
+State 153
+
+   46 Memclass: MEMORY '(' MEMORYTYPE . '=' stringhandler ',' MEMSIZE '=' sumExpr nameparameter ')'
+
+    '='  shift, and go to state 201
+
+
+State 154
+
+   45 Jobclass: JOB '(' JOB_ID . '=' sumExpr ',' FLOPSREQUIRED '=' sumExpr ',' DEADLINE '=' sumExpr ',' MEMREQUIRED '=' sumExpr ',' AFFINITY '=' affinityhandler ')'
+
+    '='  shift, and go to state 202
+
+
+State 155
+
+   48 Clusterclass: CLUSTER '(' PROCESSORS . '=' Array ',' TOPOLOGY '=' stringhandler ',' LINKBANDWIDTH '=' sumExpr ',' LINKCAPACITY '=' sumExpr nameparameter ')'
+
+    '='  shift, and go to state 203
+
+
+State 156
+
+  133 argList: Expr .
+
+    $default  reduce using rule 133 (argList)
+
+
+State 157
+
+  129 call: IDENTIFIER '(' args . ')'
+
+    ')'  shift, and go to state 204
+
+
+State 158
+
+  130 args: argList .
+  132 argList: argList . ',' Expr
+
+    ','  shift, and go to state 205
+
+    $default  reduce using rule 130 (args)
+
+
+State 159
+
+  126 immutable: '(' Expr ')' .
+
+    $default  reduce using rule 126 (immutable)
+
+
+State 160
+
+   89 simpleExpr: simpleExpr OR_OP andExpr .
+   91 andExpr: andExpr . AND_OP unaryRelExpr
+
+    AND_OP  shift, and go to state 95
+
+    $default  reduce using rule 89 (simpleExpr)
+
+
+State 161
+
+   91 andExpr: andExpr AND_OP unaryRelExpr .
+
+    $default  reduce using rule 91 (andExpr)
+
+
+State 162
+
+   95 relExpr: sumExpr relop sumExpr .
+  103 sumExpr: sumExpr . sumop term
+
+    '+'  shift, and go to state 100
+    '-'  shift, and go to state 101
+
+    $default  reduce using rule 95 (relExpr)
+
+    sumop  go to state 105
+
+
+State 163
+
+  103 sumExpr: sumExpr sumop term .
+  107 term: term . mulop factor
+
+    '*'  shift, and go to state 106
+    '/'  shift, and go to state 107
+    '%'  shift, and go to state 108
+
+    $default  reduce using rule 103 (sumExpr)
+
+    mulop  go to state 109
+
+
+State 164
+
+  107 term: term mulop factor .
+
+    $default  reduce using rule 107 (term)
+
+
+State 165
+
+   79 Expr: mutable ADD_ASSIGN Expr .
+
+    $default  reduce using rule 79 (Expr)
+
+
+State 166
+
+   80 Expr: mutable SUB_ASSIGN Expr .
+
+    $default  reduce using rule 80 (Expr)
+
+
+State 167
+
+   81 Expr: mutable MUL_ASSIGN Expr .
+
+    $default  reduce using rule 81 (Expr)
+
+
+State 168
+
+   82 Expr: mutable DIV_ASSIGN Expr .
+
+    $default  reduce using rule 82 (Expr)
+
+
+State 169
+
+   88 Expr: mutable MOD_ASSIGN Expr .
+
+    $default  reduce using rule 88 (Expr)
+
+
+State 170
+
+   87 Expr: mutable OR_ASSIGN Expr .
+
+    $default  reduce using rule 87 (Expr)
+
+
+State 171
+
+   86 Expr: mutable AND_ASSIGN Expr .
+
+    $default  reduce using rule 86 (Expr)
+
+
+State 172
+
+   78 Expr: mutable '=' Expr .
+
+    $default  reduce using rule 78 (Expr)
+
+
+State 173
+
+  117 Memfun: ISRUNNING '(' ')' .
+
+    $default  reduce using rule 117 (Memfun)
+
+
+State 174
+
+  114 mutable: IDENTIFIER .
+
+    $default  reduce using rule 114 (mutable)
+
+
+State 175
+
+  123 Array: '[' . IDsList ']'
+
+    IDENTIFIER  shift, and go to state 174
+
+    mutable  go to state 206
+    IDsList  go to state 207
+
+
+State 176
+
+  115 mutable: mutable . '[' Expr ']'
+  116        | mutable . '.' Memfun
+  122 Array: mutable .
+
+    '['  shift, and go to state 24
+    '.'  shift, and go to state 25
+
+    $default  reduce using rule 122 (Array)
+
+
+State 177
+
+  118 Memfun: SUBMITJOBS '(' Array . ')'
+
+    ')'  shift, and go to state 208
+
+
+State 178
+
+  119 Memfun: GETCLOCKSPEED '(' ')' .
+
+    $default  reduce using rule 119 (Memfun)
+
+
+State 179
+
+  120 Memfun: GETAVAILABLEMEMORY '(' ')' .
+
+    $default  reduce using rule 120 (Memfun)
+
+
+State 180
+
+  121 Memfun: GETMEMORY '(' ')' .
+
+    $default  reduce using rule 121 (Memfun)
+
+
+State 181
+
+   23 fundec: VOID IDENTIFIER '(' params ')' stmt .
+
+    $default  reduce using rule 23 (fundec)
+
+
+State 182
+
+   30 paramId: IDENTIFIER '[' ']' .
+
+    $default  reduce using rule 30 (paramId)
+
+
+State 183
+
+   77 breakstmt: BREAK ';' .
+
+    $default  reduce using rule 77 (breakstmt)
+
+
+State 184
+
+   75 returnstmt: RETURN ';' .
+
+    $default  reduce using rule 75 (returnstmt)
+
+
+State 185
+
+   76 returnstmt: RETURN Expr . ';'
+
+    ';'  shift, and go to state 209
+
+
+State 186
+
+   69 selectionstmt: IF '(' . simpleExpr ')' stmt
+   70              | IF '(' . simpleExpr ')' stmt ELSE stmt
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    simpleExpr    go to state 210
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 83
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 187
+
+   72 iterationstmt: FOR '(' . Exprstmt Exprstmt ')' stmt
+   73              | FOR '(' . Exprstmt Exprstmt Expr ')' stmt
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    RUN             shift, and go to state 133
+    DISCARD_JOB     shift, and go to state 134
+    ';'             shift, and go to state 135
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    Exprstmt      go to state 211
+    Expr          go to state 145
+    simpleExpr    go to state 56
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 63
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 188
+
+   74 iterationstmt: DO stmt . WHILE '(' simpleExpr ')' ';'
+
+    WHILE  shift, and go to state 212
+
+
+State 189
+
+   71 iterationstmt: WHILE '(' . simpleExpr ')' stmt
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    simpleExpr    go to state 213
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 83
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 190
+
+   67 Exprstmt: RUN '(' . Array ')' ';'
+
+    IDENTIFIER  shift, and go to state 174
+    '['         shift, and go to state 175
+
+    mutable  go to state 176
+    Array    go to state 214
+
+
+State 191
+
+   66 Exprstmt: DISCARD_JOB '(' . Array ')' ';'
+
+    IDENTIFIER  shift, and go to state 174
+    '['         shift, and go to state 175
+
+    mutable  go to state 176
+    Array    go to state 215
+
+
+State 192
+
+   60 compoundstmt: '{' localdecs . stmtList '}'
+   61 localdecs: localdecs . scopedvardec
+
+    CHAR    shift, and go to state 1
+    INT     shift, and go to state 2
+    FLOAT   shift, and go to state 3
+    BOOL    shift, and go to state 4
+    STATIC  shift, and go to state 216
+
+    $default  reduce using rule 64 (stmtList)
+
+    scopedvardec         go to state 217
+    scopedtypespecifier  go to state 218
+    typespecifier        go to state 219
+    stmtList             go to state 220
+
+
+State 193
+
+   65 Exprstmt: Expr ';' .
+
+    $default  reduce using rule 65 (Exprstmt)
+
+
+State 194
+
+   31 classdec: mutable '=' . class ';'
+   78 Expr: mutable '=' . Expr
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    PROCESSOR       shift, and go to state 36
+    LINK            shift, and go to state 37
+    MEMORY          shift, and go to state 38
+    JOB             shift, and go to state 39
+    CLUSTER         shift, and go to state 40
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    class         go to state 41
+    Pclass        go to state 42
+    Jobclass      go to state 43
+    Memclass      go to state 44
+    Linkclass     go to state 45
+    Clusterclass  go to state 46
+    Expr          go to state 172
+    simpleExpr    go to state 56
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 63
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 195
+
+   21 fundec: typespecifier IDENTIFIER '(' params ')' stmt .
+
+    $default  reduce using rule 21 (fundec)
+
+
+State 196
+
+   38 ManP: ISA '=' . stringhandler ',' CLOCKSPEED '=' sumExpr ',' L1MEMORY '=' sumExpr
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    stringhandler  go to state 221
+    mutable        go to state 222
+    immutable      go to state 223
+    call           go to state 65
+    constant       go to state 66
+
+
+State 197
+
+   39 OptP: ',' . L2MEMORY '=' sumExpr SubOp
+   41 SubOp: ',' . NAME '=' stringhandler
+
+    L2MEMORY  shift, and go to state 224
+    NAME      shift, and go to state 225
+
+
+State 198
+
+   37 Pclass: PROCESSOR '(' ManP OptP . ')'
+
+    ')'  shift, and go to state 226
+
+
+State 199
+
+   40 OptP: SubOp .
+
+    $default  reduce using rule 40 (OptP)
+
+
+State 200
+
+   47 Linkclass: LINK '(' STARTPOINT '=' . stringhandler ',' ENDPOINT '=' stringhandler ',' BANDWIDTH '=' sumExpr ',' CHANNELCAPACITY '=' sumExpr nameparameter ')'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    stringhandler  go to state 227
+    mutable        go to state 222
+    immutable      go to state 223
+    call           go to state 65
+    constant       go to state 66
+
+
+State 201
+
+   46 Memclass: MEMORY '(' MEMORYTYPE '=' . stringhandler ',' MEMSIZE '=' sumExpr nameparameter ')'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    stringhandler  go to state 228
+    mutable        go to state 222
+    immutable      go to state 223
+    call           go to state 65
+    constant       go to state 66
+
+
+State 202
+
+   45 Jobclass: JOB '(' JOB_ID '=' . sumExpr ',' FLOPSREQUIRED '=' sumExpr ',' DEADLINE '=' sumExpr ',' MEMREQUIRED '=' sumExpr ',' AFFINITY '=' affinityhandler ')'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    sumExpr    go to state 229
+    term       go to state 61
+    factor     go to state 62
+    mutable    go to state 83
+    immutable  go to state 64
+    call       go to state 65
+    constant   go to state 66
+
+
+State 203
+
+   48 Clusterclass: CLUSTER '(' PROCESSORS '=' . Array ',' TOPOLOGY '=' stringhandler ',' LINKBANDWIDTH '=' sumExpr ',' LINKCAPACITY '=' sumExpr nameparameter ')'
+
+    IDENTIFIER  shift, and go to state 174
+    '['         shift, and go to state 175
+
+    mutable  go to state 176
+    Array    go to state 230
+
+
+State 204
+
+  129 call: IDENTIFIER '(' args ')' .
+
+    $default  reduce using rule 129 (call)
+
+
+State 205
+
+  132 argList: argList ',' . Expr
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    Expr          go to state 231
+    simpleExpr    go to state 56
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 63
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 206
+
+  115 mutable: mutable . '[' Expr ']'
+  116        | mutable . '.' Memfun
+  125 IDsList: mutable .
+
+    '['  shift, and go to state 24
+    '.'  shift, and go to state 25
+
+    $default  reduce using rule 125 (IDsList)
+
+
+State 207
+
+  123 Array: '[' IDsList . ']'
+  124 IDsList: IDsList . ',' mutable
+
+    ','  shift, and go to state 232
+    ']'  shift, and go to state 233
+
+
+State 208
+
+  118 Memfun: SUBMITJOBS '(' Array ')' .
+
+    $default  reduce using rule 118 (Memfun)
+
+
+State 209
+
+   76 returnstmt: RETURN Expr ';' .
+
+    $default  reduce using rule 76 (returnstmt)
+
+
+State 210
+
+   69 selectionstmt: IF '(' simpleExpr . ')' stmt
+   70              | IF '(' simpleExpr . ')' stmt ELSE stmt
+   89 simpleExpr: simpleExpr . OR_OP andExpr
+
+    OR_OP  shift, and go to state 94
+    ')'    shift, and go to state 234
+
+
+State 211
+
+   72 iterationstmt: FOR '(' Exprstmt . Exprstmt ')' stmt
+   73              | FOR '(' Exprstmt . Exprstmt Expr ')' stmt
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    RUN             shift, and go to state 133
+    DISCARD_JOB     shift, and go to state 134
+    ';'             shift, and go to state 135
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    Exprstmt      go to state 235
+    Expr          go to state 145
+    simpleExpr    go to state 56
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 63
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 212
+
+   74 iterationstmt: DO stmt WHILE . '(' simpleExpr ')' ';'
+
+    '('  shift, and go to state 236
+
+
+State 213
+
+   71 iterationstmt: WHILE '(' simpleExpr . ')' stmt
+   89 simpleExpr: simpleExpr . OR_OP andExpr
+
+    OR_OP  shift, and go to state 94
+    ')'    shift, and go to state 237
+
+
+State 214
+
+   67 Exprstmt: RUN '(' Array . ')' ';'
+
+    ')'  shift, and go to state 238
+
+
+State 215
+
+   66 Exprstmt: DISCARD_JOB '(' Array . ')' ';'
+
+    ')'  shift, and go to state 239
+
+
+State 216
+
+   13 scopedtypespecifier: STATIC . typespecifier
+
+    CHAR   shift, and go to state 1
+    INT    shift, and go to state 2
+    FLOAT  shift, and go to state 3
+    BOOL   shift, and go to state 4
+
+    typespecifier  go to state 240
+
+
+State 217
+
+   61 localdecs: localdecs scopedvardec .
+
+    $default  reduce using rule 61 (localdecs)
+
+
+State 218
+
+    8 scopedvardec: scopedtypespecifier . vardecList ';'
+
+    IDENTIFIER  shift, and go to state 80
+
+    vardecList  go to state 241
+    vardecInit  go to state 21
+    vardecId    go to state 22
+
+
+State 219
+
+   14 scopedtypespecifier: typespecifier .
+
+    $default  reduce using rule 14 (scopedtypespecifier)
+
+
+State 220
+
+   60 compoundstmt: '{' localdecs stmtList . '}'
+   63 stmtList: stmtList . stmt
+
+    BREAK           shift, and go to state 127
+    RETURN          shift, and go to state 128
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IF              shift, and go to state 129
+    FOR             shift, and go to state 130
+    DO              shift, and go to state 131
+    WHILE           shift, and go to state 132
+    IDENTIFIER      shift, and go to state 52
+    RUN             shift, and go to state 133
+    DISCARD_JOB     shift, and go to state 134
+    ';'             shift, and go to state 135
+    '('             shift, and go to state 53
+    '{'             shift, and go to state 136
+    '}'             shift, and go to state 242
+    '!'             shift, and go to state 54
+
+    classdec       go to state 137
+    stmt           go to state 243
+    compoundstmt   go to state 139
+    Exprstmt       go to state 140
+    selectionstmt  go to state 141
+    iterationstmt  go to state 142
+    returnstmt     go to state 143
+    breakstmt      go to state 144
+    Expr           go to state 145
+    simpleExpr     go to state 56
+    andExpr        go to state 57
+    unaryRelExpr   go to state 58
+    relExpr        go to state 59
+    sumExpr        go to state 60
+    term           go to state 61
+    factor         go to state 62
+    mutable        go to state 146
+    immutable      go to state 64
+    call           go to state 65
+    constant       go to state 66
+
+
+State 221
+
+   38 ManP: ISA '=' stringhandler . ',' CLOCKSPEED '=' sumExpr ',' L1MEMORY '=' sumExpr
+
+    ','  shift, and go to state 244
+
+
+State 222
+
+   43 stringhandler: mutable .
+  115 mutable: mutable . '[' Expr ']'
+  116        | mutable . '.' Memfun
+
+    '['  shift, and go to state 24
+    '.'  shift, and go to state 25
+
+    $default  reduce using rule 43 (stringhandler)
+
+
+State 223
+
+   44 stringhandler: immutable .
+
+    $default  reduce using rule 44 (stringhandler)
+
+
+State 224
+
+   39 OptP: ',' L2MEMORY . '=' sumExpr SubOp
+
+    '='  shift, and go to state 245
+
+
+State 225
+
+   41 SubOp: ',' NAME . '=' stringhandler
+
+    '='  shift, and go to state 246
+
+
+State 226
+
+   37 Pclass: PROCESSOR '(' ManP OptP ')' .
+
+    $default  reduce using rule 37 (Pclass)
+
+
+State 227
+
+   47 Linkclass: LINK '(' STARTPOINT '=' stringhandler . ',' ENDPOINT '=' stringhandler ',' BANDWIDTH '=' sumExpr ',' CHANNELCAPACITY '=' sumExpr nameparameter ')'
+
+    ','  shift, and go to state 247
+
+
+State 228
+
+   46 Memclass: MEMORY '(' MEMORYTYPE '=' stringhandler . ',' MEMSIZE '=' sumExpr nameparameter ')'
+
+    ','  shift, and go to state 248
+
+
+State 229
+
+   45 Jobclass: JOB '(' JOB_ID '=' sumExpr . ',' FLOPSREQUIRED '=' sumExpr ',' DEADLINE '=' sumExpr ',' MEMREQUIRED '=' sumExpr ',' AFFINITY '=' affinityhandler ')'
+  103 sumExpr: sumExpr . sumop term
+
+    '+'  shift, and go to state 100
+    '-'  shift, and go to state 101
+    ','  shift, and go to state 249
+
+    sumop  go to state 105
+
+
+State 230
+
+   48 Clusterclass: CLUSTER '(' PROCESSORS '=' Array . ',' TOPOLOGY '=' stringhandler ',' LINKBANDWIDTH '=' sumExpr ',' LINKCAPACITY '=' sumExpr nameparameter ')'
+
+    ','  shift, and go to state 250
+
+
+State 231
+
+  132 argList: argList ',' Expr .
+
+    $default  reduce using rule 132 (argList)
+
+
+State 232
+
+  124 IDsList: IDsList ',' . mutable
+
+    IDENTIFIER  shift, and go to state 174
+
+    mutable  go to state 251
+
+
+State 233
+
+  123 Array: '[' IDsList ']' .
+
+    $default  reduce using rule 123 (Array)
+
+
+State 234
+
+   69 selectionstmt: IF '(' simpleExpr ')' . stmt
+   70              | IF '(' simpleExpr ')' . stmt ELSE stmt
+
+    BREAK           shift, and go to state 127
+    RETURN          shift, and go to state 128
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IF              shift, and go to state 129
+    FOR             shift, and go to state 130
+    DO              shift, and go to state 131
+    WHILE           shift, and go to state 132
+    IDENTIFIER      shift, and go to state 52
+    RUN             shift, and go to state 133
+    DISCARD_JOB     shift, and go to state 134
+    ';'             shift, and go to state 135
+    '('             shift, and go to state 53
+    '{'             shift, and go to state 136
+    '!'             shift, and go to state 54
+
+    classdec       go to state 137
+    stmt           go to state 252
+    compoundstmt   go to state 139
+    Exprstmt       go to state 140
+    selectionstmt  go to state 141
+    iterationstmt  go to state 142
+    returnstmt     go to state 143
+    breakstmt      go to state 144
+    Expr           go to state 145
+    simpleExpr     go to state 56
+    andExpr        go to state 57
+    unaryRelExpr   go to state 58
+    relExpr        go to state 59
+    sumExpr        go to state 60
+    term           go to state 61
+    factor         go to state 62
+    mutable        go to state 146
+    immutable      go to state 64
+    call           go to state 65
+    constant       go to state 66
+
+
+State 235
+
+   72 iterationstmt: FOR '(' Exprstmt Exprstmt . ')' stmt
+   73              | FOR '(' Exprstmt Exprstmt . Expr ')' stmt
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    ')'             shift, and go to state 253
+    '!'             shift, and go to state 54
+
+    Expr          go to state 254
+    simpleExpr    go to state 56
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 63
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 236
+
+   74 iterationstmt: DO stmt WHILE '(' . simpleExpr ')' ';'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    simpleExpr    go to state 255
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 83
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 237
+
+   71 iterationstmt: WHILE '(' simpleExpr ')' . stmt
+
+    BREAK           shift, and go to state 127
+    RETURN          shift, and go to state 128
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IF              shift, and go to state 129
+    FOR             shift, and go to state 130
+    DO              shift, and go to state 131
+    WHILE           shift, and go to state 132
+    IDENTIFIER      shift, and go to state 52
+    RUN             shift, and go to state 133
+    DISCARD_JOB     shift, and go to state 134
+    ';'             shift, and go to state 135
+    '('             shift, and go to state 53
+    '{'             shift, and go to state 136
+    '!'             shift, and go to state 54
+
+    classdec       go to state 137
+    stmt           go to state 256
+    compoundstmt   go to state 139
+    Exprstmt       go to state 140
+    selectionstmt  go to state 141
+    iterationstmt  go to state 142
+    returnstmt     go to state 143
+    breakstmt      go to state 144
+    Expr           go to state 145
+    simpleExpr     go to state 56
+    andExpr        go to state 57
+    unaryRelExpr   go to state 58
+    relExpr        go to state 59
+    sumExpr        go to state 60
+    term           go to state 61
+    factor         go to state 62
+    mutable        go to state 146
+    immutable      go to state 64
+    call           go to state 65
+    constant       go to state 66
+
+
+State 238
+
+   67 Exprstmt: RUN '(' Array ')' . ';'
+
+    ';'  shift, and go to state 257
+
+
+State 239
+
+   66 Exprstmt: DISCARD_JOB '(' Array ')' . ';'
+
+    ';'  shift, and go to state 258
+
+
+State 240
+
+   13 scopedtypespecifier: STATIC typespecifier .
+
+    $default  reduce using rule 13 (scopedtypespecifier)
+
+
+State 241
+
+    8 scopedvardec: scopedtypespecifier vardecList . ';'
+    9 vardecList: vardecList . ',' vardecInit
+
+    ';'  shift, and go to state 259
+    ','  shift, and go to state 34
+
+
+State 242
+
+   60 compoundstmt: '{' localdecs stmtList '}' .
+
+    $default  reduce using rule 60 (compoundstmt)
+
+
+State 243
+
+   63 stmtList: stmtList stmt .
+
+    $default  reduce using rule 63 (stmtList)
+
+
+State 244
+
+   38 ManP: ISA '=' stringhandler ',' . CLOCKSPEED '=' sumExpr ',' L1MEMORY '=' sumExpr
+
+    CLOCKSPEED  shift, and go to state 260
+
+
+State 245
+
+   39 OptP: ',' L2MEMORY '=' . sumExpr SubOp
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    sumExpr    go to state 261
+    term       go to state 61
+    factor     go to state 62
+    mutable    go to state 83
+    immutable  go to state 64
+    call       go to state 65
+    constant   go to state 66
+
+
+State 246
+
+   41 SubOp: ',' NAME '=' . stringhandler
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    stringhandler  go to state 262
+    mutable        go to state 222
+    immutable      go to state 223
+    call           go to state 65
+    constant       go to state 66
+
+
+State 247
+
+   47 Linkclass: LINK '(' STARTPOINT '=' stringhandler ',' . ENDPOINT '=' stringhandler ',' BANDWIDTH '=' sumExpr ',' CHANNELCAPACITY '=' sumExpr nameparameter ')'
+
+    ENDPOINT  shift, and go to state 263
+
+
+State 248
+
+   46 Memclass: MEMORY '(' MEMORYTYPE '=' stringhandler ',' . MEMSIZE '=' sumExpr nameparameter ')'
+
+    MEMSIZE  shift, and go to state 264
+
+
+State 249
+
+   45 Jobclass: JOB '(' JOB_ID '=' sumExpr ',' . FLOPSREQUIRED '=' sumExpr ',' DEADLINE '=' sumExpr ',' MEMREQUIRED '=' sumExpr ',' AFFINITY '=' affinityhandler ')'
+
+    FLOPSREQUIRED  shift, and go to state 265
+
+
+State 250
+
+   48 Clusterclass: CLUSTER '(' PROCESSORS '=' Array ',' . TOPOLOGY '=' stringhandler ',' LINKBANDWIDTH '=' sumExpr ',' LINKCAPACITY '=' sumExpr nameparameter ')'
+
+    TOPOLOGY  shift, and go to state 266
+
+
+State 251
+
+  115 mutable: mutable . '[' Expr ']'
+  116        | mutable . '.' Memfun
+  124 IDsList: IDsList ',' mutable .
+
+    '['  shift, and go to state 24
+    '.'  shift, and go to state 25
+
+    $default  reduce using rule 124 (IDsList)
+
+
+State 252
+
+   69 selectionstmt: IF '(' simpleExpr ')' stmt .
+   70              | IF '(' simpleExpr ')' stmt . ELSE stmt
+
+    ELSE  shift, and go to state 267
+
+    $default  reduce using rule 69 (selectionstmt)
+
+
+State 253
+
+   72 iterationstmt: FOR '(' Exprstmt Exprstmt ')' . stmt
+
+    BREAK           shift, and go to state 127
+    RETURN          shift, and go to state 128
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IF              shift, and go to state 129
+    FOR             shift, and go to state 130
+    DO              shift, and go to state 131
+    WHILE           shift, and go to state 132
+    IDENTIFIER      shift, and go to state 52
+    RUN             shift, and go to state 133
+    DISCARD_JOB     shift, and go to state 134
+    ';'             shift, and go to state 135
+    '('             shift, and go to state 53
+    '{'             shift, and go to state 136
+    '!'             shift, and go to state 54
+
+    classdec       go to state 137
+    stmt           go to state 268
+    compoundstmt   go to state 139
+    Exprstmt       go to state 140
+    selectionstmt  go to state 141
+    iterationstmt  go to state 142
+    returnstmt     go to state 143
+    breakstmt      go to state 144
+    Expr           go to state 145
+    simpleExpr     go to state 56
+    andExpr        go to state 57
+    unaryRelExpr   go to state 58
+    relExpr        go to state 59
+    sumExpr        go to state 60
+    term           go to state 61
+    factor         go to state 62
+    mutable        go to state 146
+    immutable      go to state 64
+    call           go to state 65
+    constant       go to state 66
+
+
+State 254
+
+   73 iterationstmt: FOR '(' Exprstmt Exprstmt Expr . ')' stmt
+
+    ')'  shift, and go to state 269
+
+
+State 255
+
+   74 iterationstmt: DO stmt WHILE '(' simpleExpr . ')' ';'
+   89 simpleExpr: simpleExpr . OR_OP andExpr
+
+    OR_OP  shift, and go to state 94
+    ')'    shift, and go to state 270
+
+
+State 256
+
+   71 iterationstmt: WHILE '(' simpleExpr ')' stmt .
+
+    $default  reduce using rule 71 (iterationstmt)
+
+
+State 257
+
+   67 Exprstmt: RUN '(' Array ')' ';' .
+
+    $default  reduce using rule 67 (Exprstmt)
+
+
+State 258
+
+   66 Exprstmt: DISCARD_JOB '(' Array ')' ';' .
+
+    $default  reduce using rule 66 (Exprstmt)
+
+
+State 259
+
+    8 scopedvardec: scopedtypespecifier vardecList ';' .
+
+    $default  reduce using rule 8 (scopedvardec)
+
+
+State 260
+
+   38 ManP: ISA '=' stringhandler ',' CLOCKSPEED . '=' sumExpr ',' L1MEMORY '=' sumExpr
+
+    '='  shift, and go to state 271
+
+
+State 261
+
+   39 OptP: ',' L2MEMORY '=' sumExpr . SubOp
+  103 sumExpr: sumExpr . sumop term
+
+    '+'  shift, and go to state 100
+    '-'  shift, and go to state 101
+    ','  shift, and go to state 272
+
+    $default  reduce using rule 42 (SubOp)
+
+    SubOp  go to state 273
+    sumop  go to state 105
+
+
+State 262
+
+   41 SubOp: ',' NAME '=' stringhandler .
+
+    $default  reduce using rule 41 (SubOp)
+
+
+State 263
+
+   47 Linkclass: LINK '(' STARTPOINT '=' stringhandler ',' ENDPOINT . '=' stringhandler ',' BANDWIDTH '=' sumExpr ',' CHANNELCAPACITY '=' sumExpr nameparameter ')'
+
+    '='  shift, and go to state 274
+
+
+State 264
+
+   46 Memclass: MEMORY '(' MEMORYTYPE '=' stringhandler ',' MEMSIZE . '=' sumExpr nameparameter ')'
+
+    '='  shift, and go to state 275
+
+
+State 265
+
+   45 Jobclass: JOB '(' JOB_ID '=' sumExpr ',' FLOPSREQUIRED . '=' sumExpr ',' DEADLINE '=' sumExpr ',' MEMREQUIRED '=' sumExpr ',' AFFINITY '=' affinityhandler ')'
+
+    '='  shift, and go to state 276
+
+
+State 266
+
+   48 Clusterclass: CLUSTER '(' PROCESSORS '=' Array ',' TOPOLOGY . '=' stringhandler ',' LINKBANDWIDTH '=' sumExpr ',' LINKCAPACITY '=' sumExpr nameparameter ')'
+
+    '='  shift, and go to state 277
+
+
+State 267
+
+   70 selectionstmt: IF '(' simpleExpr ')' stmt ELSE . stmt
+
+    BREAK           shift, and go to state 127
+    RETURN          shift, and go to state 128
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IF              shift, and go to state 129
+    FOR             shift, and go to state 130
+    DO              shift, and go to state 131
+    WHILE           shift, and go to state 132
+    IDENTIFIER      shift, and go to state 52
+    RUN             shift, and go to state 133
+    DISCARD_JOB     shift, and go to state 134
+    ';'             shift, and go to state 135
+    '('             shift, and go to state 53
+    '{'             shift, and go to state 136
+    '!'             shift, and go to state 54
+
+    classdec       go to state 137
+    stmt           go to state 278
+    compoundstmt   go to state 139
+    Exprstmt       go to state 140
+    selectionstmt  go to state 141
+    iterationstmt  go to state 142
+    returnstmt     go to state 143
+    breakstmt      go to state 144
+    Expr           go to state 145
+    simpleExpr     go to state 56
+    andExpr        go to state 57
+    unaryRelExpr   go to state 58
+    relExpr        go to state 59
+    sumExpr        go to state 60
+    term           go to state 61
+    factor         go to state 62
+    mutable        go to state 146
+    immutable      go to state 64
+    call           go to state 65
+    constant       go to state 66
+
+
+State 268
+
+   72 iterationstmt: FOR '(' Exprstmt Exprstmt ')' stmt .
+
+    $default  reduce using rule 72 (iterationstmt)
+
+
+State 269
+
+   73 iterationstmt: FOR '(' Exprstmt Exprstmt Expr ')' . stmt
+
+    BREAK           shift, and go to state 127
+    RETURN          shift, and go to state 128
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IF              shift, and go to state 129
+    FOR             shift, and go to state 130
+    DO              shift, and go to state 131
+    WHILE           shift, and go to state 132
+    IDENTIFIER      shift, and go to state 52
+    RUN             shift, and go to state 133
+    DISCARD_JOB     shift, and go to state 134
+    ';'             shift, and go to state 135
+    '('             shift, and go to state 53
+    '{'             shift, and go to state 136
+    '!'             shift, and go to state 54
+
+    classdec       go to state 137
+    stmt           go to state 279
+    compoundstmt   go to state 139
+    Exprstmt       go to state 140
+    selectionstmt  go to state 141
+    iterationstmt  go to state 142
+    returnstmt     go to state 143
+    breakstmt      go to state 144
+    Expr           go to state 145
+    simpleExpr     go to state 56
+    andExpr        go to state 57
+    unaryRelExpr   go to state 58
+    relExpr        go to state 59
+    sumExpr        go to state 60
+    term           go to state 61
+    factor         go to state 62
+    mutable        go to state 146
+    immutable      go to state 64
+    call           go to state 65
+    constant       go to state 66
+
+
+State 270
+
+   74 iterationstmt: DO stmt WHILE '(' simpleExpr ')' . ';'
+
+    ';'  shift, and go to state 280
+
+
+State 271
+
+   38 ManP: ISA '=' stringhandler ',' CLOCKSPEED '=' . sumExpr ',' L1MEMORY '=' sumExpr
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    sumExpr    go to state 281
+    term       go to state 61
+    factor     go to state 62
+    mutable    go to state 83
+    immutable  go to state 64
+    call       go to state 65
+    constant   go to state 66
+
+
+State 272
+
+   41 SubOp: ',' . NAME '=' stringhandler
+
+    NAME  shift, and go to state 225
+
+
+State 273
+
+   39 OptP: ',' L2MEMORY '=' sumExpr SubOp .
+
+    $default  reduce using rule 39 (OptP)
+
+
+State 274
+
+   47 Linkclass: LINK '(' STARTPOINT '=' stringhandler ',' ENDPOINT '=' . stringhandler ',' BANDWIDTH '=' sumExpr ',' CHANNELCAPACITY '=' sumExpr nameparameter ')'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    stringhandler  go to state 282
+    mutable        go to state 222
+    immutable      go to state 223
+    call           go to state 65
+    constant       go to state 66
+
+
+State 275
+
+   46 Memclass: MEMORY '(' MEMORYTYPE '=' stringhandler ',' MEMSIZE '=' . sumExpr nameparameter ')'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    sumExpr    go to state 283
+    term       go to state 61
+    factor     go to state 62
+    mutable    go to state 83
+    immutable  go to state 64
+    call       go to state 65
+    constant   go to state 66
+
+
+State 276
+
+   45 Jobclass: JOB '(' JOB_ID '=' sumExpr ',' FLOPSREQUIRED '=' . sumExpr ',' DEADLINE '=' sumExpr ',' MEMREQUIRED '=' sumExpr ',' AFFINITY '=' affinityhandler ')'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    sumExpr    go to state 284
+    term       go to state 61
+    factor     go to state 62
+    mutable    go to state 83
+    immutable  go to state 64
+    call       go to state 65
+    constant   go to state 66
+
+
+State 277
+
+   48 Clusterclass: CLUSTER '(' PROCESSORS '=' Array ',' TOPOLOGY '=' . stringhandler ',' LINKBANDWIDTH '=' sumExpr ',' LINKCAPACITY '=' sumExpr nameparameter ')'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    stringhandler  go to state 285
+    mutable        go to state 222
+    immutable      go to state 223
+    call           go to state 65
+    constant       go to state 66
+
+
+State 278
+
+   70 selectionstmt: IF '(' simpleExpr ')' stmt ELSE stmt .
+
+    $default  reduce using rule 70 (selectionstmt)
+
+
+State 279
+
+   73 iterationstmt: FOR '(' Exprstmt Exprstmt Expr ')' stmt .
+
+    $default  reduce using rule 73 (iterationstmt)
+
+
+State 280
+
+   74 iterationstmt: DO stmt WHILE '(' simpleExpr ')' ';' .
+
+    $default  reduce using rule 74 (iterationstmt)
+
+
+State 281
+
+   38 ManP: ISA '=' stringhandler ',' CLOCKSPEED '=' sumExpr . ',' L1MEMORY '=' sumExpr
+  103 sumExpr: sumExpr . sumop term
+
+    '+'  shift, and go to state 100
+    '-'  shift, and go to state 101
+    ','  shift, and go to state 286
+
+    sumop  go to state 105
+
+
+State 282
+
+   47 Linkclass: LINK '(' STARTPOINT '=' stringhandler ',' ENDPOINT '=' stringhandler . ',' BANDWIDTH '=' sumExpr ',' CHANNELCAPACITY '=' sumExpr nameparameter ')'
+
+    ','  shift, and go to state 287
+
+
+State 283
+
+   46 Memclass: MEMORY '(' MEMORYTYPE '=' stringhandler ',' MEMSIZE '=' sumExpr . nameparameter ')'
+  103 sumExpr: sumExpr . sumop term
+
+    '+'  shift, and go to state 100
+    '-'  shift, and go to state 101
+    ','  shift, and go to state 288
+
+    $default  reduce using rule 52 (nameparameter)
+
+    nameparameter  go to state 289
+    sumop          go to state 105
+
+
+State 284
+
+   45 Jobclass: JOB '(' JOB_ID '=' sumExpr ',' FLOPSREQUIRED '=' sumExpr . ',' DEADLINE '=' sumExpr ',' MEMREQUIRED '=' sumExpr ',' AFFINITY '=' affinityhandler ')'
+  103 sumExpr: sumExpr . sumop term
+
+    '+'  shift, and go to state 100
+    '-'  shift, and go to state 101
+    ','  shift, and go to state 290
+
+    sumop  go to state 105
+
+
+State 285
+
+   48 Clusterclass: CLUSTER '(' PROCESSORS '=' Array ',' TOPOLOGY '=' stringhandler . ',' LINKBANDWIDTH '=' sumExpr ',' LINKCAPACITY '=' sumExpr nameparameter ')'
+
+    ','  shift, and go to state 291
+
+
+State 286
+
+   38 ManP: ISA '=' stringhandler ',' CLOCKSPEED '=' sumExpr ',' . L1MEMORY '=' sumExpr
+
+    L1MEMORY  shift, and go to state 292
+
+
+State 287
+
+   47 Linkclass: LINK '(' STARTPOINT '=' stringhandler ',' ENDPOINT '=' stringhandler ',' . BANDWIDTH '=' sumExpr ',' CHANNELCAPACITY '=' sumExpr nameparameter ')'
+
+    BANDWIDTH  shift, and go to state 293
+
+
+State 288
+
+   51 nameparameter: ',' . NAME '=' stringhandler
+
+    NAME  shift, and go to state 294
+
+
+State 289
+
+   46 Memclass: MEMORY '(' MEMORYTYPE '=' stringhandler ',' MEMSIZE '=' sumExpr nameparameter . ')'
+
+    ')'  shift, and go to state 295
+
+
+State 290
+
+   45 Jobclass: JOB '(' JOB_ID '=' sumExpr ',' FLOPSREQUIRED '=' sumExpr ',' . DEADLINE '=' sumExpr ',' MEMREQUIRED '=' sumExpr ',' AFFINITY '=' affinityhandler ')'
+
+    DEADLINE  shift, and go to state 296
+
+
+State 291
+
+   48 Clusterclass: CLUSTER '(' PROCESSORS '=' Array ',' TOPOLOGY '=' stringhandler ',' . LINKBANDWIDTH '=' sumExpr ',' LINKCAPACITY '=' sumExpr nameparameter ')'
+
+    LINKBANDWIDTH  shift, and go to state 297
+
+
+State 292
+
+   38 ManP: ISA '=' stringhandler ',' CLOCKSPEED '=' sumExpr ',' L1MEMORY . '=' sumExpr
+
+    '='  shift, and go to state 298
+
+
+State 293
+
+   47 Linkclass: LINK '(' STARTPOINT '=' stringhandler ',' ENDPOINT '=' stringhandler ',' BANDWIDTH . '=' sumExpr ',' CHANNELCAPACITY '=' sumExpr nameparameter ')'
+
+    '='  shift, and go to state 299
+
+
+State 294
+
+   51 nameparameter: ',' NAME . '=' stringhandler
+
+    '='  shift, and go to state 300
+
+
+State 295
+
+   46 Memclass: MEMORY '(' MEMORYTYPE '=' stringhandler ',' MEMSIZE '=' sumExpr nameparameter ')' .
+
+    $default  reduce using rule 46 (Memclass)
+
+
+State 296
+
+   45 Jobclass: JOB '(' JOB_ID '=' sumExpr ',' FLOPSREQUIRED '=' sumExpr ',' DEADLINE . '=' sumExpr ',' MEMREQUIRED '=' sumExpr ',' AFFINITY '=' affinityhandler ')'
+
+    '='  shift, and go to state 301
+
+
+State 297
+
+   48 Clusterclass: CLUSTER '(' PROCESSORS '=' Array ',' TOPOLOGY '=' stringhandler ',' LINKBANDWIDTH . '=' sumExpr ',' LINKCAPACITY '=' sumExpr nameparameter ')'
+
+    '='  shift, and go to state 302
+
+
+State 298
+
+   38 ManP: ISA '=' stringhandler ',' CLOCKSPEED '=' sumExpr ',' L1MEMORY '=' . sumExpr
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    sumExpr    go to state 303
+    term       go to state 61
+    factor     go to state 62
+    mutable    go to state 83
+    immutable  go to state 64
+    call       go to state 65
+    constant   go to state 66
+
+
+State 299
+
+   47 Linkclass: LINK '(' STARTPOINT '=' stringhandler ',' ENDPOINT '=' stringhandler ',' BANDWIDTH '=' . sumExpr ',' CHANNELCAPACITY '=' sumExpr nameparameter ')'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    sumExpr    go to state 304
+    term       go to state 61
+    factor     go to state 62
+    mutable    go to state 83
+    immutable  go to state 64
+    call       go to state 65
+    constant   go to state 66
+
+
+State 300
+
+   51 nameparameter: ',' NAME '=' . stringhandler
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    stringhandler  go to state 305
+    mutable        go to state 222
+    immutable      go to state 223
+    call           go to state 65
+    constant       go to state 66
+
+
+State 301
+
+   45 Jobclass: JOB '(' JOB_ID '=' sumExpr ',' FLOPSREQUIRED '=' sumExpr ',' DEADLINE '=' . sumExpr ',' MEMREQUIRED '=' sumExpr ',' AFFINITY '=' affinityhandler ')'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    sumExpr    go to state 306
+    term       go to state 61
+    factor     go to state 62
+    mutable    go to state 83
+    immutable  go to state 64
+    call       go to state 65
+    constant   go to state 66
+
+
+State 302
+
+   48 Clusterclass: CLUSTER '(' PROCESSORS '=' Array ',' TOPOLOGY '=' stringhandler ',' LINKBANDWIDTH '=' . sumExpr ',' LINKCAPACITY '=' sumExpr nameparameter ')'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    sumExpr    go to state 307
+    term       go to state 61
+    factor     go to state 62
+    mutable    go to state 83
+    immutable  go to state 64
+    call       go to state 65
+    constant   go to state 66
+
+
+State 303
+
+   38 ManP: ISA '=' stringhandler ',' CLOCKSPEED '=' sumExpr ',' L1MEMORY '=' sumExpr .
+  103 sumExpr: sumExpr . sumop term
+
+    '+'  shift, and go to state 100
+    '-'  shift, and go to state 101
+
+    $default  reduce using rule 38 (ManP)
+
+    sumop  go to state 105
+
+
+State 304
+
+   47 Linkclass: LINK '(' STARTPOINT '=' stringhandler ',' ENDPOINT '=' stringhandler ',' BANDWIDTH '=' sumExpr . ',' CHANNELCAPACITY '=' sumExpr nameparameter ')'
+  103 sumExpr: sumExpr . sumop term
+
+    '+'  shift, and go to state 100
+    '-'  shift, and go to state 101
+    ','  shift, and go to state 308
+
+    sumop  go to state 105
+
+
+State 305
+
+   51 nameparameter: ',' NAME '=' stringhandler .
+
+    $default  reduce using rule 51 (nameparameter)
+
+
+State 306
+
+   45 Jobclass: JOB '(' JOB_ID '=' sumExpr ',' FLOPSREQUIRED '=' sumExpr ',' DEADLINE '=' sumExpr . ',' MEMREQUIRED '=' sumExpr ',' AFFINITY '=' affinityhandler ')'
+  103 sumExpr: sumExpr . sumop term
+
+    '+'  shift, and go to state 100
+    '-'  shift, and go to state 101
+    ','  shift, and go to state 309
+
+    sumop  go to state 105
+
+
+State 307
+
+   48 Clusterclass: CLUSTER '(' PROCESSORS '=' Array ',' TOPOLOGY '=' stringhandler ',' LINKBANDWIDTH '=' sumExpr . ',' LINKCAPACITY '=' sumExpr nameparameter ')'
+  103 sumExpr: sumExpr . sumop term
+
+    '+'  shift, and go to state 100
+    '-'  shift, and go to state 101
+    ','  shift, and go to state 310
+
+    sumop  go to state 105
+
+
+State 308
+
+   47 Linkclass: LINK '(' STARTPOINT '=' stringhandler ',' ENDPOINT '=' stringhandler ',' BANDWIDTH '=' sumExpr ',' . CHANNELCAPACITY '=' sumExpr nameparameter ')'
+
+    CHANNELCAPACITY  shift, and go to state 311
+
+
+State 309
+
+   45 Jobclass: JOB '(' JOB_ID '=' sumExpr ',' FLOPSREQUIRED '=' sumExpr ',' DEADLINE '=' sumExpr ',' . MEMREQUIRED '=' sumExpr ',' AFFINITY '=' affinityhandler ')'
+
+    MEMREQUIRED  shift, and go to state 312
+
+
+State 310
+
+   48 Clusterclass: CLUSTER '(' PROCESSORS '=' Array ',' TOPOLOGY '=' stringhandler ',' LINKBANDWIDTH '=' sumExpr ',' . LINKCAPACITY '=' sumExpr nameparameter ')'
+
+    LINKCAPACITY  shift, and go to state 313
+
+
+State 311
+
+   47 Linkclass: LINK '(' STARTPOINT '=' stringhandler ',' ENDPOINT '=' stringhandler ',' BANDWIDTH '=' sumExpr ',' CHANNELCAPACITY . '=' sumExpr nameparameter ')'
+
+    '='  shift, and go to state 314
+
+
+State 312
+
+   45 Jobclass: JOB '(' JOB_ID '=' sumExpr ',' FLOPSREQUIRED '=' sumExpr ',' DEADLINE '=' sumExpr ',' MEMREQUIRED . '=' sumExpr ',' AFFINITY '=' affinityhandler ')'
+
+    '='  shift, and go to state 315
+
+
+State 313
+
+   48 Clusterclass: CLUSTER '(' PROCESSORS '=' Array ',' TOPOLOGY '=' stringhandler ',' LINKBANDWIDTH '=' sumExpr ',' LINKCAPACITY . '=' sumExpr nameparameter ')'
+
+    '='  shift, and go to state 316
+
+
+State 314
+
+   47 Linkclass: LINK '(' STARTPOINT '=' stringhandler ',' ENDPOINT '=' stringhandler ',' BANDWIDTH '=' sumExpr ',' CHANNELCAPACITY '=' . sumExpr nameparameter ')'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    sumExpr    go to state 317
+    term       go to state 61
+    factor     go to state 62
+    mutable    go to state 83
+    immutable  go to state 64
+    call       go to state 65
+    constant   go to state 66
+
+
+State 315
+
+   45 Jobclass: JOB '(' JOB_ID '=' sumExpr ',' FLOPSREQUIRED '=' sumExpr ',' DEADLINE '=' sumExpr ',' MEMREQUIRED '=' . sumExpr ',' AFFINITY '=' affinityhandler ')'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    sumExpr    go to state 318
+    term       go to state 61
+    factor     go to state 62
+    mutable    go to state 83
+    immutable  go to state 64
+    call       go to state 65
+    constant   go to state 66
+
+
+State 316
+
+   48 Clusterclass: CLUSTER '(' PROCESSORS '=' Array ',' TOPOLOGY '=' stringhandler ',' LINKBANDWIDTH '=' sumExpr ',' LINKCAPACITY '=' . sumExpr nameparameter ')'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+
+    sumExpr    go to state 319
+    term       go to state 61
+    factor     go to state 62
+    mutable    go to state 83
+    immutable  go to state 64
+    call       go to state 65
+    constant   go to state 66
+
+
+State 317
+
+   47 Linkclass: LINK '(' STARTPOINT '=' stringhandler ',' ENDPOINT '=' stringhandler ',' BANDWIDTH '=' sumExpr ',' CHANNELCAPACITY '=' sumExpr . nameparameter ')'
+  103 sumExpr: sumExpr . sumop term
+
+    '+'  shift, and go to state 100
+    '-'  shift, and go to state 101
+    ','  shift, and go to state 288
+
+    $default  reduce using rule 52 (nameparameter)
+
+    nameparameter  go to state 320
+    sumop          go to state 105
+
+
+State 318
+
+   45 Jobclass: JOB '(' JOB_ID '=' sumExpr ',' FLOPSREQUIRED '=' sumExpr ',' DEADLINE '=' sumExpr ',' MEMREQUIRED '=' sumExpr . ',' AFFINITY '=' affinityhandler ')'
+  103 sumExpr: sumExpr . sumop term
+
+    '+'  shift, and go to state 100
+    '-'  shift, and go to state 101
+    ','  shift, and go to state 321
+
+    sumop  go to state 105
+
+
+State 319
+
+   48 Clusterclass: CLUSTER '(' PROCESSORS '=' Array ',' TOPOLOGY '=' stringhandler ',' LINKBANDWIDTH '=' sumExpr ',' LINKCAPACITY '=' sumExpr . nameparameter ')'
+  103 sumExpr: sumExpr . sumop term
+
+    '+'  shift, and go to state 100
+    '-'  shift, and go to state 101
+    ','  shift, and go to state 288
+
+    $default  reduce using rule 52 (nameparameter)
+
+    nameparameter  go to state 322
+    sumop          go to state 105
+
+
+State 320
+
+   47 Linkclass: LINK '(' STARTPOINT '=' stringhandler ',' ENDPOINT '=' stringhandler ',' BANDWIDTH '=' sumExpr ',' CHANNELCAPACITY '=' sumExpr nameparameter . ')'
+
+    ')'  shift, and go to state 323
+
+
+State 321
+
+   45 Jobclass: JOB '(' JOB_ID '=' sumExpr ',' FLOPSREQUIRED '=' sumExpr ',' DEADLINE '=' sumExpr ',' MEMREQUIRED '=' sumExpr ',' . AFFINITY '=' affinityhandler ')'
+
+    AFFINITY  shift, and go to state 324
+
+
+State 322
+
+   48 Clusterclass: CLUSTER '(' PROCESSORS '=' Array ',' TOPOLOGY '=' stringhandler ',' LINKBANDWIDTH '=' sumExpr ',' LINKCAPACITY '=' sumExpr nameparameter . ')'
+
+    ')'  shift, and go to state 325
+
+
+State 323
+
+   47 Linkclass: LINK '(' STARTPOINT '=' stringhandler ',' ENDPOINT '=' stringhandler ',' BANDWIDTH '=' sumExpr ',' CHANNELCAPACITY '=' sumExpr nameparameter ')' .
+
+    $default  reduce using rule 47 (Linkclass)
+
+
+State 324
+
+   45 Jobclass: JOB '(' JOB_ID '=' sumExpr ',' FLOPSREQUIRED '=' sumExpr ',' DEADLINE '=' sumExpr ',' MEMREQUIRED '=' sumExpr ',' AFFINITY . '=' affinityhandler ')'
+
+    '='  shift, and go to state 326
+
+
+State 325
+
+   48 Clusterclass: CLUSTER '(' PROCESSORS '=' Array ',' TOPOLOGY '=' stringhandler ',' LINKBANDWIDTH '=' sumExpr ',' LINKCAPACITY '=' sumExpr nameparameter ')' .
+
+    $default  reduce using rule 48 (Clusterclass)
+
+
+State 326
+
+   45 Jobclass: JOB '(' JOB_ID '=' sumExpr ',' FLOPSREQUIRED '=' sumExpr ',' DEADLINE '=' sumExpr ',' MEMREQUIRED '=' sumExpr ',' AFFINITY '=' . affinityhandler ')'
+
+    IDENTIFIER  shift, and go to state 174
+    '['         shift, and go to state 327
+
+    affinityhandler  go to state 328
+    mutable          go to state 329
+
+
+State 327
+
+   50 affinityhandler: '[' . Expr ',' Expr ',' Expr ',' Expr ']'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    Expr          go to state 330
+    simpleExpr    go to state 56
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 63
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 328
+
+   45 Jobclass: JOB '(' JOB_ID '=' sumExpr ',' FLOPSREQUIRED '=' sumExpr ',' DEADLINE '=' sumExpr ',' MEMREQUIRED '=' sumExpr ',' AFFINITY '=' affinityhandler . ')'
+
+    ')'  shift, and go to state 331
+
+
+State 329
+
+   49 affinityhandler: mutable .
+  115 mutable: mutable . '[' Expr ']'
+  116        | mutable . '.' Memfun
+
+    '['  shift, and go to state 24
+    '.'  shift, and go to state 25
+
+    $default  reduce using rule 49 (affinityhandler)
+
+
+State 330
+
+   50 affinityhandler: '[' Expr . ',' Expr ',' Expr ',' Expr ']'
+
+    ','  shift, and go to state 332
+
+
+State 331
+
+   45 Jobclass: JOB '(' JOB_ID '=' sumExpr ',' FLOPSREQUIRED '=' sumExpr ',' DEADLINE '=' sumExpr ',' MEMREQUIRED '=' sumExpr ',' AFFINITY '=' affinityhandler ')' .
+
+    $default  reduce using rule 45 (Jobclass)
+
+
+State 332
+
+   50 affinityhandler: '[' Expr ',' . Expr ',' Expr ',' Expr ']'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    Expr          go to state 333
+    simpleExpr    go to state 56
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 63
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 333
+
+   50 affinityhandler: '[' Expr ',' Expr . ',' Expr ',' Expr ']'
+
+    ','  shift, and go to state 334
+
+
+State 334
+
+   50 affinityhandler: '[' Expr ',' Expr ',' . Expr ',' Expr ']'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    Expr          go to state 335
+    simpleExpr    go to state 56
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 63
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 335
+
+   50 affinityhandler: '[' Expr ',' Expr ',' Expr . ',' Expr ']'
+
+    ','  shift, and go to state 336
+
+
+State 336
+
+   50 affinityhandler: '[' Expr ',' Expr ',' Expr ',' . Expr ']'
+
+    TRUE            shift, and go to state 47
+    FALSE           shift, and go to state 48
+    CONSTANT        shift, and go to state 49
+    STRING_LITERAL  shift, and go to state 50
+    FCONST          shift, and go to state 51
+    IDENTIFIER      shift, and go to state 52
+    '('             shift, and go to state 53
+    '!'             shift, and go to state 54
+
+    Expr          go to state 337
+    simpleExpr    go to state 56
+    andExpr       go to state 57
+    unaryRelExpr  go to state 58
+    relExpr       go to state 59
+    sumExpr       go to state 60
+    term          go to state 61
+    factor        go to state 62
+    mutable       go to state 63
+    immutable     go to state 64
+    call          go to state 65
+    constant      go to state 66
+
+
+State 337
+
+   50 affinityhandler: '[' Expr ',' Expr ',' Expr ',' Expr . ']'
+
+    ']'  shift, and go to state 338
+
+
+State 338
+
+   50 affinityhandler: '[' Expr ',' Expr ',' Expr ',' Expr ']' .
+
+    $default  reduce using rule 50 (affinityhandler)
